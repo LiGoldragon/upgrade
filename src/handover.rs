@@ -40,7 +40,13 @@ impl VersionLabel {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+impl From<&owner_signal_upgrade::VersionLabel> for VersionLabel {
+    fn from(value: &owner_signal_upgrade::VersionLabel) -> Self {
+        Self::new(value.as_str())
+    }
+}
+
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct SocketPath(String);
 
 impl SocketPath {

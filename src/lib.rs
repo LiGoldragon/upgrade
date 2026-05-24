@@ -7,6 +7,7 @@
 
 mod catalogue;
 mod error;
+mod event;
 mod execution;
 mod handover;
 mod invocation;
@@ -18,6 +19,10 @@ pub use catalogue::{
     MigrationModule, ModuleResult,
 };
 pub use error::Error;
+pub use event::{
+    ActiveVersion, ActiveVersionChangeSource, ActiveVersionChanged, PreparedEvent,
+    VersionQuarantined,
+};
 pub use execution::{Command, Effect, Engine, EngineError, Lowering, first_reply};
 pub use handover::{
     DrivenHandover, HandoverClient, HandoverDriver, HandoverEndpoint, HandoverFrameCodec, Prepared,

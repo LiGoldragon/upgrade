@@ -737,7 +737,7 @@ dependencies = [
 [[package]]
 name = "version-projection"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/version-projection.git?branch=main#08e5a91e633a1ed98bef504c74a2bccf090923a1"
+source = "git+https://github.com/LiGoldragon/version-projection.git?branch=main#7ce14f0c34cc18b140dfe36a64fcbfdfb2952d21"
 dependencies = [
  "nota-codec",
  "rkyv",

@@ -54,6 +54,10 @@
             inherit cargoArtifacts;
             cargoTestExtraArgs = "--test binaries";
           });
+          test-spirit-migration-uses-contract-projection = craneLib.cargoTest (commonArguments // {
+            inherit cargoArtifacts;
+            cargoTestExtraArgs = "migrations::persona_spirit::version_0_1_0_to_0_1_1::tests::migrates_historical_certainty_records_to_current_magnitude_records -- --exact";
+          });
           doc = craneLib.cargoDoc (commonArguments // {
             inherit cargoArtifacts;
             RUSTDOCFLAGS = "-D warnings";

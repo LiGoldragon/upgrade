@@ -2,7 +2,6 @@ use std::path::Path;
 
 use sema::SchemaVersion;
 use sema_engine::{Assertion, Engine, EngineOpen, QueryPlan, TableDescriptor, TableName};
-use signal_persona_spirit as current;
 use signal_upgrade::{Attempt, ComponentName, MigrationIdentifier, RejectionReason, Version};
 
 use crate::catalogue::{
@@ -238,10 +237,11 @@ mod historical {
 mod current_shape {
     use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
     use sema_engine::{EngineRecord, RecordKey};
-    use signal_persona_spirit::{Date, Entry, Kind, RecordIdentifier, Summary, Time, Topic};
-    use signal_sema::Magnitude;
+    use signal_persona_spirit::migration::{V010ToV011, v010};
+    use signal_persona_spirit::{Date, Entry, RecordIdentifier, Time};
+    use version_projection::VersionProjection;
 
-    use super::{current, historical};
+    use super::historical;
 
     #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
     pub struct StampedEntry {
@@ -277,18 +277,20 @@ mod current_shape {
 
     impl From<historical::Entry> for Entry {
         fn from(entry: historical::Entry) -> Self {
-            Self {
-                topic: Topic::new(entry.topic.as_str()),
-                kind: Kind::from(entry.kind),
-                summary: Summary::new(entry.summary.as_str()),
-                context: current::Context::new(entry.context.as_str()),
-                certainty: Magnitude::from(entry.certainty),
-                quote: current::Quote::new(entry.quote.as_str()),
-            }
+            let source = v010::Entry {
+                topic: v010::Topic::new(entry.topic.as_str()),
+                kind: v010::Kind::from(entry.kind),
+                summary: v010::Summary::new(entry.summary.as_str()),
+                context: v010::Context::new(entry.context.as_str()),
+                certainty: v010::Certainty::from(entry.certainty),
+                quote: v010::Quote::new(entry.quote.as_str()),
+            };
+            <V010ToV011 as VersionProjection<v010::Entry, Entry>>::project(source)
+                .expect("Spirit v0.1.0 entry projection to v0.1.1 is total")
         }
     }
 
-    impl From<historical::Kind> for Kind {
+    impl From<historical::Kind> for v010::Kind {
         fn from(kind: historical::Kind) -> Self {
             match kind {
                 historical::Kind::Decision => Self::Decision,
@@ -300,7 +302,7 @@ mod current_shape {
         }
     }
 
-    impl From<historical::Certainty> for Magnitude {
+    impl From<historical::Certainty> for v010::Certainty {
         fn from(certainty: historical::Certainty) -> Self {
             match certainty {
                 historical::Certainty::Maximum => Self::Maximum,
@@ -320,6 +322,7 @@ mod current_shape {
 #[cfg(test)]
 mod tests {
     use sema_engine::{Assertion, Engine, EngineOpen, QueryPlan, TableDescriptor};
+    use signal_persona_spirit as current;
     use signal_sema::Magnitude;
     use tempfile::tempdir;
 

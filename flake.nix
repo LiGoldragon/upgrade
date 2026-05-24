@@ -29,12 +29,20 @@
           strictDeps = true;
         };
         cargoArtifacts = craneLib.buildDepsOnly commonArguments;
-      in
-      {
-        packages.default = craneLib.buildPackage (commonArguments // {
+        package = craneLib.buildPackage (commonArguments // {
           inherit cargoArtifacts;
           meta.mainProgram = "upgrade";
         });
+        conceptSchemaCheck = pkgs.writeShellApplication {
+          name = "check-concept-schemas";
+          runtimeInputs = [ pkgs.python3 ];
+          text = ''
+            exec python3 ${./scripts/check_concept_schemas.py} "$@"
+          '';
+        };
+      in
+      {
+        packages.default = package;
         checks = {
           build = craneLib.cargoBuild (commonArguments // { inherit cargoArtifacts; });
           test = craneLib.cargoTest (commonArguments // { inherit cargoArtifacts; });
@@ -55,6 +63,15 @@
             inherit cargoArtifacts;
             cargoClippyExtraArgs = "--all-targets -- -D warnings";
           });
+        };
+        apps = {
+          check-concept-schemas = flake-utils.lib.mkApp {
+            drv = conceptSchemaCheck;
+          };
+          spirit-sandbox-upgrade-test = flake-utils.lib.mkApp {
+            drv = package;
+            exePath = "/bin/upgrade-spirit-sandbox-test";
+          };
         };
         devShells.default = pkgs.mkShell {
           name = "upgrade";

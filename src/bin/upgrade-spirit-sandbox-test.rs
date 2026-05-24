@@ -1,0 +1,125 @@
+use std::{
+    env, fs,
+    path::{Path, PathBuf},
+    process,
+    time::{SystemTime, UNIX_EPOCH},
+};
+
+use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
+use sema::SchemaVersion;
+use sema_engine::{
+    Engine, EngineOpen, EngineRecord, QueryPlan, RecordKey, TableDescriptor, TableName,
+};
+use signal_persona_spirit::{Date, Entry, RecordIdentifier, Time};
+use signal_upgrade::{Attempt, ComponentName, Version};
+use upgrade::{DatabaseMigration, MigrationCatalogue};
+
+const SPIRIT_SCHEMA_VERSION: SchemaVersion = SchemaVersion::new(1);
+const RECORDS: TableName = TableName::new("records");
+
+fn main() {
+    if let Err(error) = run() {
+        eprintln!("{error}");
+        process::exit(1);
+    }
+}
+
+fn run() -> Result<(), String> {
+    let source = source_argument()?;
+    if !source.exists() {
+        return Err(format!(
+            "source database does not exist: {}",
+            source.display()
+        ));
+    }
+
+    let sandbox = sandbox_directory()?;
+    let source_copy = sandbox.join("source-copy.redb");
+    let target = sandbox.join("target-v0.1.1.redb");
+    fs::copy(&source, &source_copy).map_err(|error| {
+        format!(
+            "failed to copy source database {} into sandbox: {error}",
+            source.display()
+        )
+    })?;
+
+    let attempt = Attempt {
+        component: ComponentName::new("persona-spirit"),
+        source: Version::new(0, 1, 0),
+        target: Version::new(0, 1, 1),
+    };
+    let request = DatabaseMigration::new(attempt, &source_copy, &target);
+    let completion = MigrationCatalogue::prototype()
+        .migrate_database(&request)
+        .map_err(|error| format!("migration failed: {error}"))?;
+    let readable_records = count_current_records(&target)?;
+
+    println!(
+        "(SandboxUpgradeSucceeded {} {} [{}] [{}])",
+        completion.changed_records,
+        readable_records,
+        source_copy.display(),
+        target.display()
+    );
+    Ok(())
+}
+
+fn source_argument() -> Result<PathBuf, String> {
+    let mut arguments = env::args_os();
+    let program = arguments.next().unwrap_or_default();
+    let source = arguments.next().ok_or_else(|| {
+        format!(
+            "usage: {} <path-to-v0.1.0-persona-spirit.redb>",
+            Path::new(&program).display()
+        )
+    })?;
+    if arguments.next().is_some() {
+        return Err("expected exactly one database path argument".to_owned());
+    }
+    Ok(PathBuf::from(source))
+}
+
+fn sandbox_directory() -> Result<PathBuf, String> {
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|error| format!("system time error: {error}"))?
+        .as_millis();
+    let directory = env::temp_dir().join(format!(
+        "upgrade-spirit-sandbox-{}-{timestamp}",
+        process::id()
+    ));
+    fs::create_dir_all(&directory)
+        .map_err(|error| format!("failed to create sandbox {}: {error}", directory.display()))?;
+    Ok(directory)
+}
+
+fn count_current_records(path: &Path) -> Result<usize, String> {
+    let mut engine = Engine::open(EngineOpen::new(path, SPIRIT_SCHEMA_VERSION))
+        .map_err(|error| format!("failed to open migrated database: {error}"))?;
+    let table = engine
+        .register_table(TableDescriptor::<CurrentStoredRecord>::new(RECORDS))
+        .map_err(|error| format!("failed to register migrated records table: {error}"))?;
+    let records = engine
+        .match_records(QueryPlan::all(table))
+        .map_err(|error| format!("failed to read migrated records: {error}"))?;
+    Ok(records.records().len())
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
+struct CurrentStampedEntry {
+    entry: Entry,
+    date: Date,
+    time: Time,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
+struct CurrentStoredRecord {
+    identifier: RecordIdentifier,
+    entry: CurrentStampedEntry,
+}
+
+impl EngineRecord for CurrentStoredRecord {
+    fn record_key(&self) -> RecordKey {
+        RecordKey::new(self.identifier.value().to_string())
+    }
+}

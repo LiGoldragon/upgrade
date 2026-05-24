@@ -21,10 +21,23 @@ name = "upgrade-daemon"
 path = "src/bin/upgrade-daemon.rs"
 
 [dependencies]
-nota-codec           = { git = "https://github.com/LiGoldragon/nota-codec.git", branch = "main" }
-owner-signal-upgrade = { git = "https://github.com/LiGoldragon/owner-signal-upgrade.git", branch = "main" }
-signal-upgrade       = { git = "https://github.com/LiGoldragon/signal-upgrade.git", branch = "main" }
-thiserror            = "2"
+nota-codec             = { git = "https://github.com/LiGoldragon/nota-codec.git", branch = "main" }
+owner-signal-upgrade   = { git = "https://github.com/LiGoldragon/owner-signal-upgrade.git", branch = "main" }
+rkyv                   = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
+sema                   = { git = "https://github.com/LiGoldragon/sema.git" }
+sema-engine            = { git = "https://github.com/LiGoldragon/sema-engine.git", branch = "main" }
+signal-executor        = { git = "https://github.com/LiGoldragon/signal-executor.git", branch = "main" }
+signal-frame           = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main" }
+signal-persona-spirit  = { git = "https://github.com/LiGoldragon/signal-persona-spirit.git", branch = "main" }
+signal-sema            = { git = "https://github.com/LiGoldragon/signal-sema.git", branch = "main" }
+signal-upgrade         = { git = "https://github.com/LiGoldragon/signal-upgrade.git", branch = "main" }
+thiserror              = "2"
+tokio                  = { version = "1", features = ["io-util", "net"] }
+version-projection     = { git = "https://github.com/LiGoldragon/version-projection.git", branch = "main" }
+
+[dev-dependencies]
+tempfile = "3"
+tokio    = { version = "1", features = ["macros", "rt"] }
 
 [lints.rust]
 unsafe_code = "forbid"

@@ -51,3 +51,22 @@ output. No `sema-upgrade` migration modules, no Persona
 
 Scaffold only. U4 consumes this crate after U2 and U3 have populated the
 working and owner contracts.
+
+## Pending schema-engine upgrade
+
+**Status:** scheduled for migration to schema-language-based contract per `reports/designer/326-v13-spirit-complete-schema-vision.md` + `reports/designer/324-migration-mvp-spirit-handover-re-specification.md`.
+
+**Target:** this triad's hand-written contract records, dispatcher state, persistent migration catalogue, active-version event log, quarantine list, and handover orchestration state all convert to a single `upgrade/upgrade.schema` file (with the wire surface split across `signal-upgrade` + `owner-signal-upgrade` schemas; see those files). The brilliant macro library (`primary-ezqx.1`) reads the schema(s) + emits wire types + ShortHeader projection + dispatcher + VersionProjection + storage descriptors.
+
+**Sequence:** This component is uniquely positioned — **the upgrade triad orchestrates its own schema cutover as part of the brilliant macro library landing**. Schema-daemon's persistent registry (per `reports/designer/326-v13-spirit-complete-schema-vision.md` §4) is the upgrade triad's natural home: the schema-engine pipeline produces schema fingerprints and migration paths, and the upgrade daemon is exactly the runtime that registers them, gates handovers on them, and quarantines on failure. Spirit pilots `primary-ezqx.1` first; the upgrade triad's own schema cutover then folds into the upgrade-triad-as-schema-host work, not as a separate operator pass.
+
+**Per-component concerns:**
+- Just-landed merged triad per operator's /318 Wave-4 (upgrade@2f56e37d); the schema cutover lands on a daemon that is currently U1-skeletal. U2 + U3 + U4 work and the schema cutover may interleave rather than sequence strictly: the macro library can be the substrate the U4 runtime is built against from the start, rather than U4 landing hand-written first and converting later.
+- The persistent migration catalogue, active-version event log, and quarantine list are exactly the storage shape the schema-language MVP exists to express; the upgrade triad is the natural pilot/early-adopter once Spirit clears the pilot path.
+- This component's schema describes what migrations look like and how the runtime executes them — there is a self-reference between the schema-language substrate and the upgrade triad that owns runtime migration. The brilliant macro library landing should land both together.
+
+**References:**
+- `reports/designer/326-v13-spirit-complete-schema-vision.md` — uniform header form + schema-language design (§4 schema-daemon registry)
+- `reports/designer/324-migration-mvp-spirit-handover-re-specification.md` — migration MVP + handover state
+- `reports/designer/322-spirit-mvp-positional-schema-worked-example.md` — Spirit MVP worked example
+- `reports/operator/174-schema-import-header-design-critique-2026-05-24.md` — header/body/feature separation + lowering rules

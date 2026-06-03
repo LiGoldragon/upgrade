@@ -13,6 +13,10 @@ mod handover;
 mod invocation;
 mod migrations;
 mod placeholder;
+pub mod schema {
+    #[rustfmt::skip]
+    pub mod lib;
+}
 
 pub use catalogue::{
     DatabaseMigration, DatabaseMigrationError, DatabaseMigrationResult, MigrationCatalogue,

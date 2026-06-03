@@ -28,13 +28,23 @@ output. No `sema-upgrade` migration modules, no Persona
 
 ## Code Map
 
+- `schema/lib.schema` declares the first real schema-next source for
+  the runtime-side upgrade surface, including ordinary requests,
+  owner-policy requests, and generated Signal/Nexus/SEMA roots.
+- `schema/lib.asschema` and `src/schema/lib.rs` are checked-in
+  generated artifacts; `build.rs` fails the build when they are stale.
 - `src/invocation.rs` classifies the single argument as inline NOTA,
   a NOTA file path, or a signal-encoded file path.
 - `src/placeholder.rs` emits typed placeholder replies through the new
   contracts.
 - `src/bin/upgrade.rs` is the thin CLI placeholder.
 - `src/bin/upgrade-daemon.rs` is the daemon placeholder.
-- `tests/` holds command-shape and binary witnesses.
+- `tests/generated_schema.rs` executes the generated runtime roots:
+  short header/frame round-trip, ordinary and owner Signal -> Nexus ->
+  SEMA projections, SEMA -> Signal reply projection, and typed trace
+  object naming.
+- `tests/` also holds command-shape, runtime, handover, and binary
+  witnesses.
 - `bootstrap-policy.nota` is the empty first-start policy seed.
 
 ## Invariants
@@ -49,8 +59,11 @@ output. No `sema-upgrade` migration modules, no Persona
 
 ## Status
 
-Scaffold only. U4 consumes this crate after U2 and U3 have populated the
-working and owner contracts.
+Next-stack port started. The runtime now carries checked-in
+schema-next artifacts beside the existing hand-written execution and
+handover code. The generated module is executable through tests but is
+not yet the daemon's load-bearing dispatch path; the binaries still
+return placeholder replies.
 
 ## Pending schema-engine upgrade
 

@@ -274,6 +274,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "nota-next"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#b33b5b51ce10aa7f44027b7290bfe008c90e7ce5"
+dependencies = [
+ "nota-next-derive",
+ "rkyv",
+]
+
+[[package]]
+name = "nota-next-derive"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#b33b5b51ce10aa7f44027b7290bfe008c90e7ce5"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -370,6 +389,15 @@ dependencies = [
 
 [[package]]
 name = "redb"
+version = "2.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8eca1e9d98d5a7e9002d0013e18d5a9b000aee942eb134883a82f06ebffb6c01"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "redb"
 version = "4.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8e925444704b5f17d32bf42f5b6e2df050bceebc3dcd6e71cc73dafe8092e839"
@@ -444,11 +472,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "schema-next"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/schema-next.git?branch=main#711b5fc9fe8809336c7fc54d90c1aa40cf614cc6"
+dependencies = [
+ "nota-next",
+ "redb 2.6.3",
+ "rkyv",
+]
+
+[[package]]
+name = "schema-rust-next"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/schema-rust-next.git?branch=main#a789a85e71b0c7b60402ca68c5ac553d6ca65a5c"
+dependencies = [
+ "schema-next",
+]
+
+[[package]]
 name = "sema"
 version = "0.1.0"
 source = "git+https://github.com/LiGoldragon/sema.git#4ea561bc53f6aa38fb71a7570665d57191fce0ea"
 dependencies = [
- "redb",
+ "redb 4.1.0",
  "rkyv",
  "thiserror",
 ]
@@ -731,8 +777,11 @@ name = "upgrade"
 version = "0.1.0"
 dependencies = [
  "nota-codec",
+ "nota-next",
  "owner-signal-upgrade",
  "rkyv",
+ "schema-next",
+ "schema-rust-next",
  "sema",
  "sema-engine",
  "signal-executor",

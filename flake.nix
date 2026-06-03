@@ -23,7 +23,25 @@
           "rust-src"
         ];
         craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
-        src = craneLib.cleanCargoSource ./.;
+        schemaFilter = path: type:
+          type == "regular"
+            && ((pkgs.lib.hasSuffix ".schema" path)
+              || (pkgs.lib.hasSuffix ".asschema" path));
+        scriptFilter = path: type:
+          (type == "regular" || type == "directory")
+            && (builtins.match ".*/scripts(/.*)?" path != null);
+        bootstrapFilter = path: type:
+          type == "regular" && builtins.match ".*/bootstrap-policy\\.nota$" path != null;
+        sourceFilter = path: type:
+          (craneLib.filterCargoSources path type)
+            || (schemaFilter path type)
+            || (scriptFilter path type)
+            || (bootstrapFilter path type);
+        src = pkgs.lib.cleanSourceWith {
+          src = ./.;
+          filter = sourceFilter;
+          name = "source";
+        };
         commonArguments = {
           inherit src;
           strictDeps = true;
@@ -54,10 +72,21 @@
             inherit cargoArtifacts;
             cargoTestExtraArgs = "--test binaries";
           });
+          test-generated-schema = craneLib.cargoTest (commonArguments // {
+            inherit cargoArtifacts;
+            cargoTestExtraArgs = "--test generated_schema";
+          });
           test-spirit-migration-uses-contract-projection = craneLib.cargoTest (commonArguments // {
             inherit cargoArtifacts;
             cargoTestExtraArgs = "migrations::persona_spirit::version_0_1_0_to_0_1_1::tests::migrates_historical_certainty_records_to_current_magnitude_records -- --exact";
           });
+          generated-schema-source-checked-in = pkgs.runCommand "upgrade-generated-schema-source-checked-in" { } ''
+            test -f ${src}/schema/lib.schema
+            test -f ${src}/schema/lib.asschema
+            test -f ${src}/src/schema/lib.rs
+            ! grep -R "include!(concat!(env!(\"OUT_DIR\")" ${src}/src ${src}/build.rs
+            touch $out
+          '';
           doc = craneLib.cargoDoc (commonArguments // {
             inherit cargoArtifacts;
             RUSTDOCFLAGS = "-D warnings";

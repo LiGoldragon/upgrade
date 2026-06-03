@@ -24,7 +24,12 @@ path = "src/bin/upgrade-daemon.rs"
 name = "upgrade-spirit-sandbox-test"
 path = "src/bin/upgrade-spirit-sandbox-test.rs"
 
+[features]
+default = []
+nota-text = ["dep:nota-next"]
+
 [dependencies]
+nota-next              = { git = "https://github.com/LiGoldragon/nota-next.git", branch = "main", optional = true }
 nota-codec             = { git = "https://github.com/LiGoldragon/nota-codec.git", branch = "main" }
 owner-signal-upgrade   = { git = "https://github.com/LiGoldragon/owner-signal-upgrade.git", branch = "main" }
 rkyv                   = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
@@ -42,6 +47,10 @@ version-projection     = { git = "https://github.com/LiGoldragon/version-project
 [dev-dependencies]
 tempfile = "3"
 tokio    = { version = "1", features = ["macros", "rt"] }
+
+[build-dependencies]
+schema-next = { git = "https://github.com/LiGoldragon/schema-next.git", branch = "main" }
+schema-rust-next = { git = "https://github.com/LiGoldragon/schema-rust-next.git", branch = "main" }
 
 [lints.rust]
 unsafe_code = "forbid"

@@ -1,0 +1,106 @@
+{}
+[(Inspect Inspection)
+ (AttemptUpgrade Attempt)
+ (Report ReportQuery)
+ (AskHandoverMarker MarkerRequest)
+ (ReadyToHandover ReadinessReport)
+ (HandoverCompleted CompletionReport)
+ (Mirror MirrorPayload)
+ (Divergence DivergencePayload)
+ (RecoverFromFailure RecoveryRequest)
+ (Register Registration)
+ (Allow PolicyRange)
+ (Block Block)
+ (Query Query)
+ (ForceFlip ForceFlip)
+ (Rollback Rollback)
+ (Quarantine Quarantine)]
+[(InspectionReported InspectionReported)
+ (UpgradeCompleted Completion)
+ (UpgradeRejected Rejection)
+ (Reported Reported)
+ (HandoverMarker HandoverMarker)
+ (HandoverAccepted HandoverAcceptance)
+ (HandoverFinalized HandoverFinalization)
+ (MirrorAcknowledged MirrorAcknowledgement)
+ (DivergenceAcknowledged DivergenceAcknowledgement)
+ (RecoveryCompleted RecoveryResult)
+ (HandoverRejected HandoverRejection)
+ (Registered Registration)
+ (Allowed PolicyRange)
+ (Blocked Block)
+ (PolicyReported PolicyReported)
+ (PolicyRejected PolicyRejected)
+ (FlipForced ForcedFlip)
+ (RolledBack RolledBack)
+ (Quarantined Quarantined)
+ (Rejected Rejected)
+ (RequestUnimplemented RequestUnimplemented)]
+{
+  ComponentName String
+  MigrationIdentifier String
+  RecordKind String
+  RawByte Integer
+  RawBytes (Vec RawByte)
+  ContractVersion { byte RawBytes }
+  Version { major Integer minor Integer patch Integer }
+  SupportedMigration { component ComponentName source Version target Version identifier MigrationIdentifier }
+  Inspection [All (Component ComponentName)]
+  Attempt { component ComponentName source Version target Version }
+  ReportQuery [All (Component ComponentName)]
+  InspectionReported { migrations (Vec SupportedMigration) }
+  Completion { component ComponentName source Version target Version migration MigrationIdentifier changed_records Integer }
+  RejectionReason [UnsupportedMigration ComponentMismatch MigrationFailed]
+  Rejection { component ComponentName source Version target Version reason RejectionReason }
+  Reported { completions (Vec Completion) rejections (Vec Rejection) }
+  UnimplementedReason [NotBuiltYet IntegrationNotLanded]
+  RequestUnimplemented { reason UnimplementedReason }
+  Date { year Integer month Integer day Integer }
+  Time { hour Integer minute Integer second Integer }
+  HandoverMarker { component ComponentName schema_hash ContractVersion commit_sequence Integer write_counter Integer last_record_identifier (Optional Integer) recorded_at_date Date recorded_at_time Time }
+  MarkerRequest { component ComponentName }
+  ReadinessReport { component ComponentName source_marker HandoverMarker }
+  CompletionReport { component ComponentName accepted_marker HandoverMarker }
+  MirrorPayload { component ComponentName source_version ContractVersion target_version ContractVersion kind RecordKind payload RawBytes }
+  DivergencePayload { component ComponentName source_version ContractVersion target_version ContractVersion reason DivergenceReason kind RecordKind payload RawBytes }
+  RecoveryRequest { component ComponentName failure_identifier Integer }
+  HandoverAcceptance { accepted_marker HandoverMarker }
+  HandoverFinalization { finalized_marker HandoverMarker }
+  MirrorAcknowledgement { component ComponentName write_counter Integer }
+  DivergenceAcknowledgement { component ComponentName divergence_identifier Integer }
+  RecoveryResult { component ComponentName recovered Boolean }
+  HandoverRejection { component ComponentName reason HandoverRejectionReason }
+  HandoverRejectionReason [SchemaMismatch CommitSequenceAdvanced AlreadyInHandover NotReady]
+  DivergenceReason [NotRepresentable TargetUnavailable TargetRejected]
+  MigrationState [Enabled Disabled]
+  Registration { component ComponentName source Version target Version migration MigrationIdentifier state MigrationState }
+  PolicyRange { component ComponentName source Version target Version }
+  BlockReason [Unsafe Superseded NotReviewed]
+  Block { component ComponentName source Version target Version reason BlockReason }
+  Query [All (Component ComponentName)]
+  PolicyEntry { component ComponentName source Version target Version state MigrationState }
+  PolicyReported { entries (Vec PolicyEntry) }
+  CatalogueRejectionReason [UnknownMigration AlreadyRegistered NotAllowed]
+  PolicyRejected { component ComponentName source Version target Version reason CatalogueRejectionReason }
+  VersionLabel String
+  SelectorVersion { label VersionLabel contract_version ContractVersion }
+  ForceReason [OperatorOverride MarkerMismatchAccepted EmergencyRecovery]
+  RollbackReason [PostCutoverFailure OperatorOverride RecoveryDrill]
+  QuarantineReason [FailedUpgrade SuspectState OperatorHold]
+  ForceFlip { component ComponentName current_version SelectorVersion target_version SelectorVersion reason ForceReason }
+  Rollback { component ComponentName active_version SelectorVersion restore_version SelectorVersion reason RollbackReason }
+  Quarantine { component ComponentName version SelectorVersion reason QuarantineReason }
+  ForcedFlip { component ComponentName active_version SelectorVersion }
+  RolledBack { component ComponentName active_version SelectorVersion }
+  Quarantined { component ComponentName version SelectorVersion }
+  SelectorRejectionReason [UnknownComponent UnknownVersion NotAllowed AlreadyQuarantined NotQuarantined VersionQuarantined HandoverRejected UpgradeSocketUnavailable]
+  Rejected { component ComponentName reason SelectorRejectionReason }
+  NexusWork [(SignalArrived Input) (SemaWriteCompleted SemaWriteOutput) (SemaReadCompleted SemaReadOutput) (EffectCompleted NexusEffectResult)]
+  NexusAction [(CommandSemaWrite SemaWriteInput) (CommandSemaRead SemaReadInput) (ReplyToSignal Output) (CommandEffect NexusEffectCommand) (Continue NexusWork)]
+  NexusEffectCommand [(CallHandoverPeer MirrorPayload) (NotifySelector ForceFlip)]
+  NexusEffectResult [(HandoverPeerCalled MirrorAcknowledgement) (SelectorNotified ForcedFlip)]
+  SemaWriteInput [(AttemptUpgrade Attempt) (ReadyToHandover ReadinessReport) (HandoverCompleted CompletionReport) (Mirror MirrorPayload) (Divergence DivergencePayload) (RecoverFromFailure RecoveryRequest) (Register Registration) (Allow PolicyRange) (Block Block) (ForceFlip ForceFlip) (Rollback Rollback) (Quarantine Quarantine)]
+  SemaReadInput [(Inspect Inspection) (Report ReportQuery) (AskHandoverMarker MarkerRequest) (Query Query)]
+  SemaWriteOutput [(UpgradeCompleted Completion) (UpgradeRejected Rejection) (HandoverAccepted HandoverAcceptance) (HandoverFinalized HandoverFinalization) (MirrorAcknowledged MirrorAcknowledgement) (DivergenceAcknowledged DivergenceAcknowledgement) (RecoveryCompleted RecoveryResult) (HandoverRejected HandoverRejection) (Registered Registration) (Allowed PolicyRange) (Blocked Block) (PolicyRejected PolicyRejected) (FlipForced ForcedFlip) (RolledBack RolledBack) (Quarantined Quarantined) (Rejected Rejected) (RequestUnimplemented RequestUnimplemented)]
+  SemaReadOutput [(InspectionReported InspectionReported) (Reported Reported) (HandoverMarker HandoverMarker) (PolicyReported PolicyReported) (PolicyRejected PolicyRejected) (RequestUnimplemented RequestUnimplemented)]
+}

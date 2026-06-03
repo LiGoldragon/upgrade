@@ -40,8 +40,8 @@ impl VersionLabel {
     }
 }
 
-impl From<&owner_signal_upgrade::VersionLabel> for VersionLabel {
-    fn from(value: &owner_signal_upgrade::VersionLabel) -> Self {
+impl From<&meta_signal_upgrade::VersionLabel> for VersionLabel {
+    fn from(value: &meta_signal_upgrade::VersionLabel) -> Self {
         Self::new(value.as_str())
     }
 }

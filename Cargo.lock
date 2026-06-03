@@ -214,6 +214,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8ca58f447f06ed17d5fc4043ce1b10dd205e060fb3ce5b979b8ed8e59ff3f79"
 
 [[package]]
+name = "meta-signal-upgrade"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/meta-signal-upgrade.git?branch=main#fe465fa045cd9206b46341f6d8de51df24b568b5"
+dependencies = [
+ "nota-codec",
+ "rkyv",
+ "schema-next",
+ "schema-rust-next",
+ "signal-frame",
+ "signal-sema",
+ "signal-upgrade",
+ "thiserror",
+ "version-projection",
+]
+
+[[package]]
 name = "mio"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -297,20 +313,6 @@ name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
-
-[[package]]
-name = "owner-signal-upgrade"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/owner-signal-upgrade.git?branch=main#e1fbc8ccea0b4e7dd5ab07fa0b73bc9f5cf2403e"
-dependencies = [
- "nota-codec",
- "rkyv",
- "signal-frame",
- "signal-sema",
- "signal-upgrade",
- "thiserror",
- "version-projection",
-]
 
 [[package]]
 name = "paste"
@@ -776,9 +778,9 @@ checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 name = "upgrade"
 version = "0.1.0"
 dependencies = [
+ "meta-signal-upgrade",
  "nota-codec",
  "nota-next",
- "owner-signal-upgrade",
  "rkyv",
  "schema-next",
  "schema-rust-next",

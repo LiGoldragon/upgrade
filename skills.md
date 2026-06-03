@@ -11,7 +11,7 @@ Read this before editing the upgrade runtime.
 - `~/primary/skills/testing.md`
 - this repo's `ARCHITECTURE.md`
 - `signal-upgrade/ARCHITECTURE.md`
-- `owner-signal-upgrade/ARCHITECTURE.md`
+- `meta-signal-upgrade/ARCHITECTURE.md`
 
 ## Boundary
 
@@ -19,7 +19,7 @@ This repo owns the upgrade runtime: library, CLI, daemon, future actor
 tree, policy bootstrap, sema-engine state, migration catalogue, and
 handover orchestration.
 
-Contract records stay in `signal-upgrade` and `owner-signal-upgrade`.
+Contract records stay in `signal-upgrade` and `meta-signal-upgrade`.
 
 ## Invariants
 

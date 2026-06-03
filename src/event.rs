@@ -1,4 +1,4 @@
-use owner_signal_upgrade::{ForceFlip, Quarantine, Rollback};
+use meta_signal_upgrade::{ForceFlip, Quarantine, Rollback};
 use signal_upgrade::{ComponentName, HandoverMarker};
 use version_projection::{ComponentName as ProjectionComponentName, ContractVersion};
 
@@ -55,10 +55,10 @@ pub enum ActiveVersionChangeSource {
         commit_sequence: u64,
     },
     ForceFlip {
-        reason: owner_signal_upgrade::ForceReason,
+        reason: meta_signal_upgrade::ForceReason,
     },
     Rollback {
-        reason: owner_signal_upgrade::RollbackReason,
+        reason: meta_signal_upgrade::RollbackReason,
     },
 }
 
@@ -147,7 +147,7 @@ pub struct VersionQuarantined {
     component: ComponentName,
     version: VersionLabel,
     schema_hash: ContractVersion,
-    reason: owner_signal_upgrade::QuarantineReason,
+    reason: meta_signal_upgrade::QuarantineReason,
 }
 
 impl VersionQuarantined {
@@ -172,7 +172,7 @@ impl VersionQuarantined {
         self.schema_hash
     }
 
-    pub fn reason(&self) -> owner_signal_upgrade::QuarantineReason {
+    pub fn reason(&self) -> meta_signal_upgrade::QuarantineReason {
         self.reason
     }
 }

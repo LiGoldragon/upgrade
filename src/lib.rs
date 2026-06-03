@@ -3,7 +3,7 @@
 //! This crate owns compiled migration modules and the production
 //! adjacent-version handover client/driver. The ordinary and owner
 //! signal vocabularies live in `signal-upgrade` and
-//! `owner-signal-upgrade`.
+//! `meta-signal-upgrade`.
 
 mod catalogue;
 mod error;

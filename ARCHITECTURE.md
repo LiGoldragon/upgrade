@@ -7,7 +7,7 @@ own the migration catalogue, policy state, migration history, active
 version event log, quarantine list, and handover orchestration.
 
 The ordinary contract lives in `signal-upgrade`; the owner-only
-contract lives in `owner-signal-upgrade`.
+contract lives in `meta-signal-upgrade`.
 
 ## Boundaries
 
@@ -54,7 +54,7 @@ output. No `sema-upgrade` migration modules, no Persona
   data.
 - The CLI and daemon do not open durable state in U1.
 - The runtime depends on `signal-upgrade` and
-  `owner-signal-upgrade`; it does not duplicate their wire records.
+  `meta-signal-upgrade`; it does not duplicate their wire records.
 - U2 and U3 populate the contracts before U4 moves runtime substance.
 
 ## Status
@@ -69,7 +69,7 @@ return placeholder replies.
 
 **Status:** scheduled for migration to schema-language-based contract per `reports/designer/326-v13-spirit-complete-schema-vision.md` + `reports/designer/324-migration-mvp-spirit-handover-re-specification.md`.
 
-**Target:** this triad's hand-written contract records, dispatcher state, persistent migration catalogue, active-version event log, quarantine list, and handover orchestration state all convert to a single `upgrade/upgrade.schema` file (with the wire surface split across `signal-upgrade` + `owner-signal-upgrade` schemas; see those files). The brilliant macro library (`primary-ezqx.1`) reads the schema(s) + emits wire types + ShortHeader projection + dispatcher + VersionProjection + storage descriptors.
+**Target:** this triad's hand-written contract records, dispatcher state, persistent migration catalogue, active-version event log, quarantine list, and handover orchestration state all convert to a single `upgrade/upgrade.schema` file (with the wire surface split across `signal-upgrade` + `meta-signal-upgrade` schemas; see those files). The brilliant macro library (`primary-ezqx.1`) reads the schema(s) + emits wire types + ShortHeader projection + dispatcher + VersionProjection + storage descriptors.
 
 **Sequence:** This component is uniquely positioned — **the upgrade triad orchestrates its own schema cutover as part of the brilliant macro library landing**. Schema-daemon's persistent registry (per `reports/designer/326-v13-spirit-complete-schema-vision.md` §4) is the upgrade triad's natural home: the schema-engine pipeline produces schema fingerprints and migration paths, and the upgrade daemon is exactly the runtime that registers them, gates handovers on them, and quarantines on failure. Spirit pilots `primary-ezqx.1` first; the upgrade triad's own schema cutover then folds into the upgrade-triad-as-schema-host work, not as a separate operator pass.
 

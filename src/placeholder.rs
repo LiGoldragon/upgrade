@@ -1,8 +1,8 @@
-use nota_codec::{Encoder, NotaEncode};
-use owner_signal_upgrade::{
+use meta_signal_upgrade::{
     Reply as OwnerReply, RequestUnimplemented as OwnerRequestUnimplemented,
     UnimplementedReason as OwnerUnimplementedReason,
 };
+use nota_codec::{Encoder, NotaEncode};
 use signal_upgrade::{
     Reply as OrdinaryReply, RequestUnimplemented as OrdinaryRequestUnimplemented,
     UnimplementedReason as OrdinaryUnimplementedReason,

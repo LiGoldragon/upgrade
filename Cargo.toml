@@ -31,7 +31,7 @@ nota-text = ["dep:nota-next"]
 [dependencies]
 nota-next              = { git = "https://github.com/LiGoldragon/nota-next.git", branch = "main", optional = true }
 nota-codec             = { git = "https://github.com/LiGoldragon/nota-codec.git", branch = "main" }
-owner-signal-upgrade   = { git = "https://github.com/LiGoldragon/owner-signal-upgrade.git", branch = "main" }
+meta-signal-upgrade   = { git = "https://github.com/LiGoldragon/meta-signal-upgrade.git", branch = "main" }
 rkyv                   = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 sema                   = { git = "https://github.com/LiGoldragon/sema.git" }
 sema-engine            = { git = "https://github.com/LiGoldragon/sema-engine.git", branch = "main" }

@@ -31,8 +31,10 @@ output. No `sema-upgrade` migration modules, no Persona
 - `schema/lib.schema` declares the first real schema-next source for
   the runtime-side upgrade surface, including ordinary requests,
   owner-policy requests, and generated Signal/Nexus/SEMA roots.
-- `schema/lib.asschema` and `src/schema/lib.rs` are checked-in
-  generated artifacts; `build.rs` fails the build when they are stale.
+- `src/schema/lib.rs` is the checked-in generated Rust interface;
+  `build.rs` deserializes `schema/lib.schema` into `SchemaSource`,
+  validates the schema-in-Rust value through text and rkyv round-trips,
+  and fails the build when the generated Rust is stale.
 - `src/invocation.rs` classifies the single argument as inline NOTA,
   a NOTA file path, or a signal-encoded file path.
 - `src/placeholder.rs` emits typed placeholder replies through the new

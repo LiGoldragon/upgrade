@@ -25,8 +25,7 @@
         craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
         schemaFilter = path: type:
           type == "regular"
-            && ((pkgs.lib.hasSuffix ".schema" path)
-              || (pkgs.lib.hasSuffix ".asschema" path));
+            && (pkgs.lib.hasSuffix ".schema" path);
         scriptFilter = path: type:
           (type == "regular" || type == "directory")
             && (builtins.match ".*/scripts(/.*)?" path != null);
@@ -82,7 +81,6 @@
           });
           generated-schema-source-checked-in = pkgs.runCommand "upgrade-generated-schema-source-checked-in" { } ''
             test -f ${src}/schema/lib.schema
-            test -f ${src}/schema/lib.asschema
             test -f ${src}/src/schema/lib.rs
             ! grep -R "include!(concat!(env!(\"OUT_DIR\")" ${src}/src ${src}/build.rs
             touch $out

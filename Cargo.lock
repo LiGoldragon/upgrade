@@ -215,8 +215,8 @@ checksum = "f8ca58f447f06ed17d5fc4043ce1b10dd205e060fb3ce5b979b8ed8e59ff3f79"
 
 [[package]]
 name = "meta-signal-upgrade"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/meta-signal-upgrade.git?branch=main#fe465fa045cd9206b46341f6d8de51df24b568b5"
+version = "0.2.1"
+source = "git+https://github.com/LiGoldragon/meta-signal-upgrade.git?branch=main#3e6199533de73f8f4428c89ed7f3bbaa13d9b37b"
 dependencies = [
  "nota-codec",
  "rkyv",
@@ -272,7 +272,7 @@ dependencies = [
 [[package]]
 name = "nota-codec"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/nota-codec.git?branch=main#139217d78e88df6df518b886a56ac2272255005f"
+source = "git+https://github.com/LiGoldragon/nota-codec.git?branch=main#f761421c383121a04df761a444a3778d1c0b137d"
 dependencies = [
  "camino",
  "nota-derive",
@@ -291,8 +291,8 @@ dependencies = [
 
 [[package]]
 name = "nota-next"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#b33b5b51ce10aa7f44027b7290bfe008c90e7ce5"
+version = "0.3.0"
+source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#fb600e327157df47a0d18a42c25821a7e06a30a9"
 dependencies = [
  "nota-next-derive",
  "rkyv",
@@ -300,8 +300,8 @@ dependencies = [
 
 [[package]]
 name = "nota-next-derive"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#b33b5b51ce10aa7f44027b7290bfe008c90e7ce5"
+version = "0.2.0"
+source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#fb600e327157df47a0d18a42c25821a7e06a30a9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -475,8 +475,8 @@ dependencies = [
 
 [[package]]
 name = "schema-next"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/schema-next.git?branch=main#711b5fc9fe8809336c7fc54d90c1aa40cf614cc6"
+version = "0.1.4"
+source = "git+https://github.com/LiGoldragon/schema-next.git?branch=main#bc59bcb89a9090b922703ccd7c52251fe7d347c0"
 dependencies = [
  "nota-next",
  "redb 2.6.3",
@@ -485,10 +485,11 @@ dependencies = [
 
 [[package]]
 name = "schema-rust-next"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/schema-rust-next.git?branch=main#a789a85e71b0c7b60402ca68c5ac553d6ca65a5c"
+version = "0.1.12"
+source = "git+https://github.com/LiGoldragon/schema-rust-next.git?branch=main#99af362a02f77914b95a92e0eb8584e2f1ce2f25"
 dependencies = [
  "schema-next",
+ "thiserror",
 ]
 
 [[package]]
@@ -644,11 +645,13 @@ dependencies = [
 
 [[package]]
 name = "signal-upgrade"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-upgrade.git?branch=main#b5eb0e8eba94443dfb5398167f97e089fc3f533e"
+version = "0.2.1"
+source = "git+https://github.com/LiGoldragon/signal-upgrade.git?branch=main#95919481b9c5ef2216b55ff2ca2dda0b03ca712c"
 dependencies = [
  "nota-codec",
  "rkyv",
+ "schema-next",
+ "schema-rust-next",
  "signal-frame",
  "signal-sema",
  "thiserror",
@@ -763,6 +766,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "triad-runtime"
+version = "0.2.0"
+source = "git+https://github.com/LiGoldragon/triad-runtime.git?branch=main#e40d1e960be0da3ee942286b98ab778f996dad6d"
+dependencies = [
+ "thiserror",
+]
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -794,6 +805,7 @@ dependencies = [
  "tempfile",
  "thiserror",
  "tokio",
+ "triad-runtime",
  "version-projection",
 ]
 

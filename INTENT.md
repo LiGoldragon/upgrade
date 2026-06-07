@@ -10,7 +10,7 @@ migration orchestration. The full daemon will own the migration
 catalogue, policy state, migration history, the active-version event
 log, the quarantine list, and handover orchestration. Paired with the
 contract repos `signal-upgrade` (ordinary migration attempts) and
-`meta-signal-upgrade` (owner-only administration, selector control,
+`meta-signal-upgrade` (meta policy administration, selector control,
 rollback, quarantine).
 
 ## Repo-scope only
@@ -30,9 +30,10 @@ Workspace-shape intent stays in `primary/INTENT.md`.
 
 ## Constraints
 
-- **Both binaries take exactly one argument.** Flag-style arguments are
-  rejected rather than treated as request data, per the single-argument
-  NOTA rule.
+- **Both binaries take exactly one argument.** The CLI is the human
+  edge and may accept NOTA. The daemon is a machine process and accepts
+  only a signal-encoded rkyv configuration file. Flag-style arguments
+  are rejected rather than treated as request data.
 - **The runtime depends on the contracts; it does not duplicate them.**
   Wire records live in `signal-upgrade` and `meta-signal-upgrade`; the
   runtime imports them.
@@ -58,6 +59,6 @@ Workspace-shape intent stays in `primary/INTENT.md`.
 - `ARCHITECTURE.md` — role, boundaries, the skeletal U1 shape, the
   pending schema-engine upgrade, and code map.
 - `../signal-upgrade/INTENT.md` — ordinary migration-attempt contract.
-- `../meta-signal-upgrade/INTENT.md` — owner-only meta-signal contract.
+- `../meta-signal-upgrade/INTENT.md` — meta policy contract.
 - `primary/skills/component-triad.md` — triad structure and the
   compile-time module index for migration dispatch.

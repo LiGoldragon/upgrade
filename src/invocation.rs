@@ -24,7 +24,7 @@ impl Argument {
     pub fn kind(&self) -> InvocationKind {
         if self.value.trim_start().starts_with('(') {
             InvocationKind::InlineNota
-        } else if self.value.ends_with(".signal") {
+        } else if self.value.ends_with(".rkyv") {
             InvocationKind::SignalFile
         } else {
             InvocationKind::NotaFile
@@ -65,5 +65,14 @@ impl Invocation {
 
     pub fn argument(&self) -> &Argument {
         &self.argument
+    }
+
+    pub fn require_signal_file_argument(&self) -> Result<(), Error> {
+        match self.argument.kind() {
+            InvocationKind::SignalFile => Ok(()),
+            InvocationKind::InlineNota | InvocationKind::NotaFile => {
+                Err(Error::DaemonExpectedSignalFile)
+            }
+        }
     }
 }

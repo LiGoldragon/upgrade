@@ -8,14 +8,16 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error("signal frame: {0}")]
     SignalFrame(#[from] signal_frame::FrameError),
-    #[error("upgrade expects exactly one NOTA or signal argument")]
+    #[error("upgrade expects exactly one argument")]
     MissingArgument,
-    #[error("upgrade expects exactly one NOTA or signal argument")]
+    #[error("upgrade expects exactly one argument")]
     TooManyArguments,
     #[error("argument must not be empty")]
     EmptyArgument,
     #[error("flag-style argument `{argument}` is not accepted; pass one NOTA record or file path")]
     FlagStyleArgument { argument: String },
+    #[error("upgrade-daemon expects a signal-encoded rkyv configuration file")]
+    DaemonExpectedSignalFile,
     #[error("daemon frame is too large: {bytes} bytes")]
     DaemonFrameTooLarge { bytes: usize },
     #[error("socket path is occupied by a non-socket file: {path}")]
@@ -39,7 +41,8 @@ impl PartialEq for Error {
         match (self, other) {
             (Self::MissingArgument, Self::MissingArgument)
             | (Self::TooManyArguments, Self::TooManyArguments)
-            | (Self::EmptyArgument, Self::EmptyArgument) => true,
+            | (Self::EmptyArgument, Self::EmptyArgument)
+            | (Self::DaemonExpectedSignalFile, Self::DaemonExpectedSignalFile) => true,
             (
                 Self::FlagStyleArgument { argument: left },
                 Self::FlagStyleArgument { argument: right },

@@ -36,7 +36,8 @@ where
     I: IntoIterator<Item = S>,
     S: Into<String>,
 {
-    let _invocation = Invocation::from_program_arguments(arguments)?;
+    let invocation = Invocation::from_program_arguments(arguments)?;
+    invocation.require_signal_file_argument()?;
     Ok(encode_nota(&ordinary_placeholder_reply()))
 }
 

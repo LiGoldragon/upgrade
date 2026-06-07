@@ -32,9 +32,31 @@ fn invocation_classifies_the_three_single_argument_shapes() {
     let nota_file =
         Invocation::from_program_arguments(["upgrade", "./request.nota"]).expect("nota file");
     let signal_file =
-        Invocation::from_program_arguments(["upgrade", "./request.signal"]).expect("signal file");
+        Invocation::from_program_arguments(["upgrade", "./request.rkyv"]).expect("signal file");
 
     assert_eq!(inline.argument().kind(), InvocationKind::InlineNota);
     assert_eq!(nota_file.argument().kind(), InvocationKind::NotaFile);
     assert_eq!(signal_file.argument().kind(), InvocationKind::SignalFile);
+}
+
+#[test]
+fn daemon_invocation_requires_signal_encoded_file_argument() {
+    let signal_file =
+        Invocation::from_program_arguments(["upgrade-daemon", "./configuration.rkyv"])
+            .expect("signal file");
+    assert_eq!(signal_file.require_signal_file_argument(), Ok(()));
+
+    let inline = Invocation::from_program_arguments(["upgrade-daemon", "(Configure Empty)"])
+        .expect("inline");
+    let nota_file = Invocation::from_program_arguments(["upgrade-daemon", "./configuration.nota"])
+        .expect("nota file");
+
+    assert_eq!(
+        inline.require_signal_file_argument(),
+        Err(Error::DaemonExpectedSignalFile)
+    );
+    assert_eq!(
+        nota_file.require_signal_file_argument(),
+        Err(Error::DaemonExpectedSignalFile)
+    );
 }

@@ -1,8 +1,8 @@
 use std::process::Command;
 
-fn assert_placeholder_reply(binary: &str) {
+fn assert_placeholder_reply(binary: &str, argument: &str) {
     let output = Command::new(binary)
-        .arg("(Tap All)")
+        .arg(argument)
         .output()
         .expect("run binary");
 
@@ -16,12 +16,27 @@ fn assert_placeholder_reply(binary: &str) {
 
 #[test]
 fn upgrade_cli_accepts_one_argument_and_prints_one_nota_reply() {
-    assert_placeholder_reply(env!("CARGO_BIN_EXE_upgrade"));
+    assert_placeholder_reply(env!("CARGO_BIN_EXE_upgrade"), "(Tap All)");
 }
 
 #[test]
-fn upgrade_daemon_accepts_one_argument_and_prints_one_nota_reply() {
-    assert_placeholder_reply(env!("CARGO_BIN_EXE_upgrade-daemon"));
+fn upgrade_daemon_accepts_signal_encoded_argument_and_prints_placeholder_reply() {
+    assert_placeholder_reply(env!("CARGO_BIN_EXE_upgrade-daemon"), "configuration.rkyv");
+}
+
+#[test]
+fn upgrade_daemon_rejects_nota_arguments() {
+    for argument in ["(Tap All)", "configuration.nota"] {
+        let output = Command::new(env!("CARGO_BIN_EXE_upgrade-daemon"))
+            .arg(argument)
+            .output()
+            .expect("run daemon placeholder");
+
+        assert!(!output.status.success());
+        let standard_error = String::from_utf8(output.stderr).expect("stderr");
+        assert!(standard_error.contains("signal-encoded rkyv configuration file"));
+        assert!(output.stdout.is_empty());
+    }
 }
 
 #[test]

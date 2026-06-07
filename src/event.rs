@@ -52,7 +52,7 @@ impl PreparedEvent {
 )))]
 pub enum ActiveVersionChangeSource {
     HandoverMarker {
-        commit_sequence: u64,
+        state_sequence: u64,
     },
     ForceFlip {
         reason: meta_signal_upgrade::ForceReason,
@@ -63,9 +63,9 @@ pub enum ActiveVersionChangeSource {
 }
 
 impl ActiveVersionChangeSource {
-    pub fn commit_sequence(&self) -> Option<u64> {
+    pub fn state_sequence(&self) -> Option<u64> {
         match self {
-            Self::HandoverMarker { commit_sequence } => Some(*commit_sequence),
+            Self::HandoverMarker { state_sequence } => Some(*state_sequence),
             Self::ForceFlip { .. } | Self::Rollback { .. } => None,
         }
     }
@@ -90,7 +90,7 @@ impl ActiveVersionChanged {
             active_version: target.next_version().clone(),
             schema_hash: marker.schema_hash,
             source: ActiveVersionChangeSource::HandoverMarker {
-                commit_sequence: marker.commit_sequence,
+                state_sequence: marker.state_sequence,
             },
         }
     }
@@ -133,8 +133,8 @@ impl ActiveVersionChanged {
         &self.source
     }
 
-    pub fn commit_sequence(&self) -> Option<u64> {
-        self.source.commit_sequence()
+    pub fn state_sequence(&self) -> Option<u64> {
+        self.source.state_sequence()
     }
 }
 
@@ -225,8 +225,8 @@ impl ActiveVersion {
         &self.source
     }
 
-    pub fn commit_sequence(&self) -> Option<u64> {
-        self.source.commit_sequence()
+    pub fn state_sequence(&self) -> Option<u64> {
+        self.source.state_sequence()
     }
 }
 

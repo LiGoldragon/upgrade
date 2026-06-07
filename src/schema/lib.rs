@@ -6,9 +6,7 @@ pub type Boolean = bool;
 pub type Path = std::string::String;
 
 #[cfg(feature = "nota-text")]
-pub use nota_next::{
-    NotaDecode, NotaDecodeError, NotaEncode, NotaSource,
-};
+pub use nota_next::{NotaDecode, NotaDecodeError, NotaEncode, NotaSource};
 
 pub type ComponentName = String;
 
@@ -133,9 +131,9 @@ pub struct Time {
 pub struct HandoverMarker {
     pub component: ComponentName,
     pub schema_hash: ContractVersion,
-    pub commit_sequence: Integer,
-    pub write_counter: Integer,
-    pub last_record_identifier: Option<Integer>,
+    pub state_sequence: Integer,
+    pub mirrored_write_count: Integer,
+    pub record_frontier: Option<Integer>,
     pub recorded_at_date: Date,
     pub recorded_at_time: Time,
 }
@@ -198,7 +196,7 @@ pub struct HandoverFinalization(pub HandoverMarker);
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct MirrorAcknowledgement {
     pub component: ComponentName,
-    pub write_counter: Integer,
+    pub mirrored_write_count: Integer,
 }
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -226,7 +224,7 @@ pub struct HandoverRejection {
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum HandoverRejectionReason {
     SchemaMismatch,
-    CommitSequenceAdvanced,
+    StateSequenceAdvanced,
     AlreadyInHandover,
     NotReady,
 }
@@ -561,16 +559,13 @@ impl ContractVersion {
     pub fn new(payload: RawBytes) -> Self {
         Self(payload)
     }
-
     pub fn payload(&self) -> &RawBytes {
         &self.0
     }
-
     pub fn into_payload(self) -> RawBytes {
         self.0
     }
 }
-
 impl From<RawBytes> for ContractVersion {
     fn from(payload: RawBytes) -> Self {
         Self::new(payload)
@@ -581,16 +576,13 @@ impl InspectionReported {
     pub fn new(payload: Vec<SupportedMigration>) -> Self {
         Self(payload)
     }
-
     pub fn payload(&self) -> &Vec<SupportedMigration> {
         &self.0
     }
-
     pub fn into_payload(self) -> Vec<SupportedMigration> {
         self.0
     }
 }
-
 impl From<Vec<SupportedMigration>> for InspectionReported {
     fn from(payload: Vec<SupportedMigration>) -> Self {
         Self::new(payload)
@@ -601,16 +593,13 @@ impl RequestUnimplemented {
     pub fn new(payload: UnimplementedReason) -> Self {
         Self(payload)
     }
-
     pub fn payload(&self) -> &UnimplementedReason {
         &self.0
     }
-
     pub fn into_payload(self) -> UnimplementedReason {
         self.0
     }
 }
-
 impl From<UnimplementedReason> for RequestUnimplemented {
     fn from(payload: UnimplementedReason) -> Self {
         Self::new(payload)
@@ -621,16 +610,13 @@ impl MarkerRequest {
     pub fn new(payload: ComponentName) -> Self {
         Self(payload)
     }
-
     pub fn payload(&self) -> &ComponentName {
         &self.0
     }
-
     pub fn into_payload(self) -> ComponentName {
         self.0
     }
 }
-
 impl From<ComponentName> for MarkerRequest {
     fn from(payload: ComponentName) -> Self {
         Self::new(payload)
@@ -641,16 +627,13 @@ impl HandoverAcceptance {
     pub fn new(payload: HandoverMarker) -> Self {
         Self(payload)
     }
-
     pub fn payload(&self) -> &HandoverMarker {
         &self.0
     }
-
     pub fn into_payload(self) -> HandoverMarker {
         self.0
     }
 }
-
 impl From<HandoverMarker> for HandoverAcceptance {
     fn from(payload: HandoverMarker) -> Self {
         Self::new(payload)
@@ -661,16 +644,13 @@ impl HandoverFinalization {
     pub fn new(payload: HandoverMarker) -> Self {
         Self(payload)
     }
-
     pub fn payload(&self) -> &HandoverMarker {
         &self.0
     }
-
     pub fn into_payload(self) -> HandoverMarker {
         self.0
     }
 }
-
 impl From<HandoverMarker> for HandoverFinalization {
     fn from(payload: HandoverMarker) -> Self {
         Self::new(payload)
@@ -681,16 +661,13 @@ impl PolicyReported {
     pub fn new(payload: Vec<PolicyEntry>) -> Self {
         Self(payload)
     }
-
     pub fn payload(&self) -> &Vec<PolicyEntry> {
         &self.0
     }
-
     pub fn into_payload(self) -> Vec<PolicyEntry> {
         self.0
     }
 }
-
 impl From<Vec<PolicyEntry>> for PolicyReported {
     fn from(payload: Vec<PolicyEntry>) -> Self {
         Self::new(payload)
@@ -719,15 +696,12 @@ impl NexusWork {
     pub fn signal_arrived(payload: Input) -> Self {
         Self::SignalArrived(payload)
     }
-
     pub fn sema_write_completed(payload: SemaWriteOutput) -> Self {
         Self::SemaWriteCompleted(payload)
     }
-
     pub fn sema_read_completed(payload: SemaReadOutput) -> Self {
         Self::SemaReadCompleted(payload)
     }
-
     pub fn effect_completed(payload: NexusEffectResult) -> Self {
         Self::EffectCompleted(payload)
     }
@@ -737,19 +711,15 @@ impl NexusAction {
     pub fn command_sema_write(payload: SemaWriteInput) -> Self {
         Self::CommandSemaWrite(payload)
     }
-
     pub fn command_sema_read(payload: SemaReadInput) -> Self {
         Self::CommandSemaRead(payload)
     }
-
     pub fn reply_to_signal(payload: Output) -> Self {
         Self::ReplyToSignal(payload)
     }
-
     pub fn command_effect(payload: NexusEffectCommand) -> Self {
         Self::CommandEffect(payload)
     }
-
     pub fn r#continue(payload: NexusWork) -> Self {
         Self::Continue(payload)
     }
@@ -759,7 +729,6 @@ impl NexusEffectCommand {
     pub fn call_handover_peer(payload: MirrorPayload) -> Self {
         Self::CallHandoverPeer(payload)
     }
-
     pub fn notify_selector(payload: ForceFlip) -> Self {
         Self::NotifySelector(payload)
     }
@@ -769,7 +738,6 @@ impl NexusEffectResult {
     pub fn handover_peer_called(payload: MirrorAcknowledgement) -> Self {
         Self::HandoverPeerCalled(payload)
     }
-
     pub fn selector_notified(payload: ForcedFlip) -> Self {
         Self::SelectorNotified(payload)
     }
@@ -779,47 +747,36 @@ impl SemaWriteInput {
     pub fn attempt_upgrade(payload: Attempt) -> Self {
         Self::AttemptUpgrade(payload)
     }
-
     pub fn ready_to_handover(payload: ReadinessReport) -> Self {
         Self::ReadyToHandover(payload)
     }
-
     pub fn handover_completed(payload: CompletionReport) -> Self {
         Self::HandoverCompleted(payload)
     }
-
     pub fn mirror(payload: MirrorPayload) -> Self {
         Self::Mirror(payload)
     }
-
     pub fn divergence(payload: DivergencePayload) -> Self {
         Self::Divergence(payload)
     }
-
     pub fn recover_from_failure(payload: RecoveryRequest) -> Self {
         Self::RecoverFromFailure(payload)
     }
-
     pub fn register(payload: Registration) -> Self {
         Self::Register(payload)
     }
-
     pub fn allow(payload: PolicyRange) -> Self {
         Self::Allow(payload)
     }
-
     pub fn block(payload: Block) -> Self {
         Self::Block(payload)
     }
-
     pub fn force_flip(payload: ForceFlip) -> Self {
         Self::ForceFlip(payload)
     }
-
     pub fn rollback(payload: Rollback) -> Self {
         Self::Rollback(payload)
     }
-
     pub fn quarantine(payload: Quarantine) -> Self {
         Self::Quarantine(payload)
     }
@@ -829,15 +786,12 @@ impl SemaReadInput {
     pub fn inspect(payload: Inspection) -> Self {
         Self::Inspect(payload)
     }
-
     pub fn report(payload: ReportQuery) -> Self {
         Self::Report(payload)
     }
-
     pub fn ask_handover_marker(payload: ComponentName) -> Self {
         Self::AskHandoverMarker(MarkerRequest::new(payload))
     }
-
     pub fn query(payload: Query) -> Self {
         Self::Query(payload)
     }
@@ -847,67 +801,51 @@ impl SemaWriteOutput {
     pub fn upgrade_completed(payload: Completion) -> Self {
         Self::UpgradeCompleted(payload)
     }
-
     pub fn upgrade_rejected(payload: Rejection) -> Self {
         Self::UpgradeRejected(payload)
     }
-
     pub fn handover_accepted(payload: HandoverMarker) -> Self {
         Self::HandoverAccepted(HandoverAcceptance::new(payload))
     }
-
     pub fn handover_finalized(payload: HandoverMarker) -> Self {
         Self::HandoverFinalized(HandoverFinalization::new(payload))
     }
-
     pub fn mirror_acknowledged(payload: MirrorAcknowledgement) -> Self {
         Self::MirrorAcknowledged(payload)
     }
-
     pub fn divergence_acknowledged(payload: DivergenceAcknowledgement) -> Self {
         Self::DivergenceAcknowledged(payload)
     }
-
     pub fn recovery_completed(payload: RecoveryResult) -> Self {
         Self::RecoveryCompleted(payload)
     }
-
     pub fn handover_rejected(payload: HandoverRejection) -> Self {
         Self::HandoverRejected(payload)
     }
-
     pub fn registered(payload: Registration) -> Self {
         Self::Registered(payload)
     }
-
     pub fn allowed(payload: PolicyRange) -> Self {
         Self::Allowed(payload)
     }
-
     pub fn blocked(payload: Block) -> Self {
         Self::Blocked(payload)
     }
-
     pub fn policy_rejected(payload: PolicyRejected) -> Self {
         Self::PolicyRejected(payload)
     }
-
     pub fn flip_forced(payload: ForcedFlip) -> Self {
         Self::FlipForced(payload)
     }
-
     pub fn rolled_back(payload: RolledBack) -> Self {
         Self::RolledBack(payload)
     }
-
     pub fn quarantined(payload: Quarantined) -> Self {
         Self::Quarantined(payload)
     }
-
     pub fn rejected(payload: Rejected) -> Self {
         Self::Rejected(payload)
     }
-
     pub fn request_unimplemented(payload: UnimplementedReason) -> Self {
         Self::RequestUnimplemented(RequestUnimplemented::new(payload))
     }
@@ -917,23 +855,18 @@ impl SemaReadOutput {
     pub fn inspection_reported(payload: Vec<SupportedMigration>) -> Self {
         Self::InspectionReported(InspectionReported::new(payload))
     }
-
     pub fn reported(payload: Reported) -> Self {
         Self::Reported(payload)
     }
-
     pub fn handover_marker(payload: HandoverMarker) -> Self {
         Self::HandoverMarker(payload)
     }
-
     pub fn policy_reported(payload: Vec<PolicyEntry>) -> Self {
         Self::PolicyReported(PolicyReported::new(payload))
     }
-
     pub fn policy_rejected(payload: PolicyRejected) -> Self {
         Self::PolicyRejected(payload)
     }
-
     pub fn request_unimplemented(payload: UnimplementedReason) -> Self {
         Self::RequestUnimplemented(RequestUnimplemented::new(payload))
     }
@@ -943,63 +876,48 @@ impl Input {
     pub fn inspect(payload: Inspection) -> Self {
         Self::Inspect(payload)
     }
-
     pub fn attempt_upgrade(payload: Attempt) -> Self {
         Self::AttemptUpgrade(payload)
     }
-
     pub fn report(payload: ReportQuery) -> Self {
         Self::Report(payload)
     }
-
     pub fn ask_handover_marker(payload: ComponentName) -> Self {
         Self::AskHandoverMarker(MarkerRequest::new(payload))
     }
-
     pub fn ready_to_handover(payload: ReadinessReport) -> Self {
         Self::ReadyToHandover(payload)
     }
-
     pub fn handover_completed(payload: CompletionReport) -> Self {
         Self::HandoverCompleted(payload)
     }
-
     pub fn mirror(payload: MirrorPayload) -> Self {
         Self::Mirror(payload)
     }
-
     pub fn divergence(payload: DivergencePayload) -> Self {
         Self::Divergence(payload)
     }
-
     pub fn recover_from_failure(payload: RecoveryRequest) -> Self {
         Self::RecoverFromFailure(payload)
     }
-
     pub fn register(payload: Registration) -> Self {
         Self::Register(payload)
     }
-
     pub fn allow(payload: PolicyRange) -> Self {
         Self::Allow(payload)
     }
-
     pub fn block(payload: Block) -> Self {
         Self::Block(payload)
     }
-
     pub fn query(payload: Query) -> Self {
         Self::Query(payload)
     }
-
     pub fn force_flip(payload: ForceFlip) -> Self {
         Self::ForceFlip(payload)
     }
-
     pub fn rollback(payload: Rollback) -> Self {
         Self::Rollback(payload)
     }
-
     pub fn quarantine(payload: Quarantine) -> Self {
         Self::Quarantine(payload)
     }
@@ -1009,83 +927,63 @@ impl Output {
     pub fn inspection_reported(payload: Vec<SupportedMigration>) -> Self {
         Self::InspectionReported(InspectionReported::new(payload))
     }
-
     pub fn upgrade_completed(payload: Completion) -> Self {
         Self::UpgradeCompleted(payload)
     }
-
     pub fn upgrade_rejected(payload: Rejection) -> Self {
         Self::UpgradeRejected(payload)
     }
-
     pub fn reported(payload: Reported) -> Self {
         Self::Reported(payload)
     }
-
     pub fn handover_marker(payload: HandoverMarker) -> Self {
         Self::HandoverMarker(payload)
     }
-
     pub fn handover_accepted(payload: HandoverMarker) -> Self {
         Self::HandoverAccepted(HandoverAcceptance::new(payload))
     }
-
     pub fn handover_finalized(payload: HandoverMarker) -> Self {
         Self::HandoverFinalized(HandoverFinalization::new(payload))
     }
-
     pub fn mirror_acknowledged(payload: MirrorAcknowledgement) -> Self {
         Self::MirrorAcknowledged(payload)
     }
-
     pub fn divergence_acknowledged(payload: DivergenceAcknowledgement) -> Self {
         Self::DivergenceAcknowledged(payload)
     }
-
     pub fn recovery_completed(payload: RecoveryResult) -> Self {
         Self::RecoveryCompleted(payload)
     }
-
     pub fn handover_rejected(payload: HandoverRejection) -> Self {
         Self::HandoverRejected(payload)
     }
-
     pub fn registered(payload: Registration) -> Self {
         Self::Registered(payload)
     }
-
     pub fn allowed(payload: PolicyRange) -> Self {
         Self::Allowed(payload)
     }
-
     pub fn blocked(payload: Block) -> Self {
         Self::Blocked(payload)
     }
-
     pub fn policy_reported(payload: Vec<PolicyEntry>) -> Self {
         Self::PolicyReported(PolicyReported::new(payload))
     }
-
     pub fn policy_rejected(payload: PolicyRejected) -> Self {
         Self::PolicyRejected(payload)
     }
-
     pub fn flip_forced(payload: ForcedFlip) -> Self {
         Self::FlipForced(payload)
     }
-
     pub fn rolled_back(payload: RolledBack) -> Self {
         Self::RolledBack(payload)
     }
-
     pub fn quarantined(payload: Quarantined) -> Self {
         Self::Quarantined(payload)
     }
-
     pub fn rejected(payload: Rejected) -> Self {
         Self::Rejected(payload)
     }
-
     pub fn request_unimplemented(payload: UnimplementedReason) -> Self {
         Self::RequestUnimplemented(RequestUnimplemented::new(payload))
     }
@@ -1630,7 +1528,6 @@ impl ContractVersion {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1641,7 +1538,6 @@ impl Version {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1652,7 +1548,6 @@ impl SupportedMigration {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1663,7 +1558,6 @@ impl Inspection {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1674,7 +1568,6 @@ impl Attempt {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1685,7 +1578,6 @@ impl ReportQuery {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1696,7 +1588,6 @@ impl InspectionReported {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1707,7 +1598,6 @@ impl Completion {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1718,7 +1608,6 @@ impl RejectionReason {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1729,7 +1618,6 @@ impl Rejection {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1740,7 +1628,6 @@ impl Reported {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1751,7 +1638,6 @@ impl UnimplementedReason {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1762,7 +1648,6 @@ impl RequestUnimplemented {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1773,7 +1658,6 @@ impl Date {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1784,7 +1668,6 @@ impl Time {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1795,7 +1678,6 @@ impl HandoverMarker {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1806,7 +1688,6 @@ impl MarkerRequest {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1817,7 +1698,6 @@ impl ReadinessReport {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1828,7 +1708,6 @@ impl CompletionReport {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1839,7 +1718,6 @@ impl MirrorPayload {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1850,7 +1728,6 @@ impl DivergencePayload {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1861,7 +1738,6 @@ impl RecoveryRequest {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1872,7 +1748,6 @@ impl HandoverAcceptance {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1883,7 +1758,6 @@ impl HandoverFinalization {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1894,7 +1768,6 @@ impl MirrorAcknowledgement {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1905,7 +1778,6 @@ impl DivergenceAcknowledgement {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1916,7 +1788,6 @@ impl RecoveryResult {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1927,7 +1798,6 @@ impl HandoverRejection {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1938,7 +1808,6 @@ impl HandoverRejectionReason {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1949,7 +1818,6 @@ impl DivergenceReason {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1960,7 +1828,6 @@ impl MigrationState {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1971,7 +1838,6 @@ impl Registration {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1982,7 +1848,6 @@ impl PolicyRange {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -1993,7 +1858,6 @@ impl BlockReason {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2004,7 +1868,6 @@ impl Block {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2015,7 +1878,6 @@ impl Query {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2026,7 +1888,6 @@ impl PolicyEntry {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2037,7 +1898,6 @@ impl PolicyReported {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2048,7 +1908,6 @@ impl CatalogueRejectionReason {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2059,7 +1918,6 @@ impl PolicyRejected {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2070,7 +1928,6 @@ impl SelectorVersion {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2081,7 +1938,6 @@ impl ForceReason {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2092,7 +1948,6 @@ impl RollbackReason {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2103,7 +1958,6 @@ impl QuarantineReason {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2114,7 +1968,6 @@ impl ForceFlip {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2125,7 +1978,6 @@ impl Rollback {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2136,7 +1988,6 @@ impl Quarantine {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2147,7 +1998,6 @@ impl ForcedFlip {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2158,7 +2008,6 @@ impl RolledBack {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2169,7 +2018,6 @@ impl Quarantined {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2180,7 +2028,6 @@ impl SelectorRejectionReason {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2191,7 +2038,6 @@ impl Rejected {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2202,7 +2048,6 @@ impl NexusWork {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2213,7 +2058,6 @@ impl NexusAction {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2224,7 +2068,6 @@ impl NexusEffectCommand {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2235,7 +2078,6 @@ impl NexusEffectResult {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2246,7 +2088,6 @@ impl SemaWriteInput {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2257,7 +2098,6 @@ impl SemaReadInput {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2268,7 +2108,6 @@ impl SemaWriteOutput {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2279,7 +2118,6 @@ impl SemaReadOutput {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2290,7 +2128,6 @@ impl Input {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2299,12 +2136,10 @@ impl Input {
 #[cfg(feature = "nota-text")]
 impl std::str::FromStr for Input {
     type Err = NotaDecodeError;
-
     fn from_str(source: &str) -> Result<Self, Self::Err> {
         NotaSource::new(source).parse::<Self>()
     }
 }
-
 #[cfg(feature = "nota-text")]
 impl std::fmt::Display for Input {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -2317,7 +2152,6 @@ impl Output {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(&self) -> String {
         <Self as NotaEncode>::to_nota(self)
     }
@@ -2326,12 +2160,10 @@ impl Output {
 #[cfg(feature = "nota-text")]
 impl std::str::FromStr for Output {
     type Err = NotaDecodeError;
-
     fn from_str(source: &str) -> Result<Self, Self::Err> {
         NotaSource::new(source).parse::<Self>()
     }
 }
-
 #[cfg(feature = "nota-text")]
 impl std::fmt::Display for Output {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -2380,7 +2212,6 @@ pub mod short_header {
 }
 
 const SIGNAL_SHORT_HEADER_BYTE_COUNT: usize = 8;
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SignalFrameError {
     ArchiveEncode,
@@ -2389,23 +2220,39 @@ pub enum SignalFrameError {
     UnknownHeader { root_enum: &'static str, header: u64 },
     HeaderMismatch { expected: u64, found: u64 },
 }
-
 impl std::fmt::Display for SignalFrameError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::ArchiveEncode => formatter.write_str("failed to encode rkyv archive"),
             Self::ArchiveDecode => formatter.write_str("failed to decode rkyv archive"),
-            Self::FrameTooShort { found } => write!(formatter, "signal frame too short: {found} bytes"),
-            Self::UnknownHeader { root_enum, header } => write!(formatter, "unknown {root_enum} short header 0x{header:016X}"),
-            Self::HeaderMismatch { expected, found } => write!(formatter, "decoded payload header mismatch: expected 0x{expected:016X}, found 0x{found:016X}"),
+            Self::FrameTooShort { found } => {
+                write!(formatter, "signal frame too short: {found} bytes")
+            }
+            Self::UnknownHeader { root_enum, header } => {
+                write!(formatter, "unknown {root_enum} short header 0x{header:016X}")
+            }
+            Self::HeaderMismatch { expected, found } => {
+                write!(
+                    formatter,
+                    "decoded payload header mismatch: expected 0x{expected:016X}, found 0x{found:016X}"
+                )
+            }
         }
     }
 }
-
 impl std::error::Error for SignalFrameError {}
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub enum InputRoute {
     Inspect,
     AttemptUpgrade,
@@ -2426,7 +2273,16 @@ pub enum InputRoute {
 }
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub enum OutputRoute {
     InspectionReported,
     UpgradeCompleted,
@@ -2472,7 +2328,6 @@ impl Input {
             Self::Quarantine(_) => InputRoute::Quarantine,
         }
     }
-
     pub fn short_header(&self) -> u64 {
         match self {
             Self::Inspect(_) => short_header::INPUT_INSPECT,
@@ -2493,7 +2348,6 @@ impl Input {
             Self::Quarantine(_) => short_header::INPUT_QUARANTINE,
         }
     }
-
     pub fn route_from_short_header(header: u64) -> Result<InputRoute, SignalFrameError> {
         match header {
             short_header::INPUT_INSPECT => Ok(InputRoute::Inspect),
@@ -2504,7 +2358,9 @@ impl Input {
             short_header::INPUT_HANDOVER_COMPLETED => Ok(InputRoute::HandoverCompleted),
             short_header::INPUT_MIRROR => Ok(InputRoute::Mirror),
             short_header::INPUT_DIVERGENCE => Ok(InputRoute::Divergence),
-            short_header::INPUT_RECOVER_FROM_FAILURE => Ok(InputRoute::RecoverFromFailure),
+            short_header::INPUT_RECOVER_FROM_FAILURE => {
+                Ok(InputRoute::RecoverFromFailure)
+            }
             short_header::INPUT_REGISTER => Ok(InputRoute::Register),
             short_header::INPUT_ALLOW => Ok(InputRoute::Allow),
             short_header::INPUT_BLOCK => Ok(InputRoute::Block),
@@ -2512,32 +2368,47 @@ impl Input {
             short_header::INPUT_FORCE_FLIP => Ok(InputRoute::ForceFlip),
             short_header::INPUT_ROLLBACK => Ok(InputRoute::Rollback),
             short_header::INPUT_QUARANTINE => Ok(InputRoute::Quarantine),
-            _ => Err(SignalFrameError::UnknownHeader { root_enum: "Input", header }),
+            _ => {
+                Err(SignalFrameError::UnknownHeader {
+                    root_enum: "Input",
+                    header,
+                })
+            }
         }
     }
-
     pub fn encode_signal_frame(&self) -> Result<Vec<u8>, SignalFrameError> {
         let archive = rkyv::to_bytes::<rkyv::rancor::Error>(self)
             .map_err(|_| SignalFrameError::ArchiveEncode)?;
-        let mut frame = Vec::with_capacity(SIGNAL_SHORT_HEADER_BYTE_COUNT + archive.len());
+        let mut frame = Vec::with_capacity(
+            SIGNAL_SHORT_HEADER_BYTE_COUNT + archive.len(),
+        );
         frame.extend_from_slice(&self.short_header().to_le_bytes());
         frame.extend_from_slice(&archive);
         Ok(frame)
     }
-
-    pub fn decode_signal_frame(frame: &[u8]) -> Result<(InputRoute, Self), SignalFrameError> {
+    pub fn decode_signal_frame(
+        frame: &[u8],
+    ) -> Result<(InputRoute, Self), SignalFrameError> {
         if frame.len() < SIGNAL_SHORT_HEADER_BYTE_COUNT {
-            return Err(SignalFrameError::FrameTooShort { found: frame.len() });
+            return Err(SignalFrameError::FrameTooShort {
+                found: frame.len(),
+            });
         }
         let mut header_bytes = [0_u8; SIGNAL_SHORT_HEADER_BYTE_COUNT];
         header_bytes.copy_from_slice(&frame[..SIGNAL_SHORT_HEADER_BYTE_COUNT]);
         let header = u64::from_le_bytes(header_bytes);
         let route = Self::route_from_short_header(header)?;
-        let value = rkyv::from_bytes::<Self, rkyv::rancor::Error>(&frame[SIGNAL_SHORT_HEADER_BYTE_COUNT..])
+        let value = rkyv::from_bytes::<
+            Self,
+            rkyv::rancor::Error,
+        >(&frame[SIGNAL_SHORT_HEADER_BYTE_COUNT..])
             .map_err(|_| SignalFrameError::ArchiveDecode)?;
         let expected = value.short_header();
         if expected != header {
-            return Err(SignalFrameError::HeaderMismatch { expected, found: header });
+            return Err(SignalFrameError::HeaderMismatch {
+                expected,
+                found: header,
+            });
         }
         Ok((route, value))
     }
@@ -2569,7 +2440,6 @@ impl Output {
             Self::RequestUnimplemented(_) => OutputRoute::RequestUnimplemented,
         }
     }
-
     pub fn short_header(&self) -> u64 {
         match self {
             Self::InspectionReported(_) => short_header::OUTPUT_INSPECTION_REPORTED,
@@ -2580,7 +2450,9 @@ impl Output {
             Self::HandoverAccepted(_) => short_header::OUTPUT_HANDOVER_ACCEPTED,
             Self::HandoverFinalized(_) => short_header::OUTPUT_HANDOVER_FINALIZED,
             Self::MirrorAcknowledged(_) => short_header::OUTPUT_MIRROR_ACKNOWLEDGED,
-            Self::DivergenceAcknowledged(_) => short_header::OUTPUT_DIVERGENCE_ACKNOWLEDGED,
+            Self::DivergenceAcknowledged(_) => {
+                short_header::OUTPUT_DIVERGENCE_ACKNOWLEDGED
+            }
             Self::RecoveryCompleted(_) => short_header::OUTPUT_RECOVERY_COMPLETED,
             Self::HandoverRejected(_) => short_header::OUTPUT_HANDOVER_REJECTED,
             Self::Registered(_) => short_header::OUTPUT_REGISTERED,
@@ -2595,18 +2467,25 @@ impl Output {
             Self::RequestUnimplemented(_) => short_header::OUTPUT_REQUEST_UNIMPLEMENTED,
         }
     }
-
-    pub fn route_from_short_header(header: u64) -> Result<OutputRoute, SignalFrameError> {
+    pub fn route_from_short_header(
+        header: u64,
+    ) -> Result<OutputRoute, SignalFrameError> {
         match header {
-            short_header::OUTPUT_INSPECTION_REPORTED => Ok(OutputRoute::InspectionReported),
+            short_header::OUTPUT_INSPECTION_REPORTED => {
+                Ok(OutputRoute::InspectionReported)
+            }
             short_header::OUTPUT_UPGRADE_COMPLETED => Ok(OutputRoute::UpgradeCompleted),
             short_header::OUTPUT_UPGRADE_REJECTED => Ok(OutputRoute::UpgradeRejected),
             short_header::OUTPUT_REPORTED => Ok(OutputRoute::Reported),
             short_header::OUTPUT_HANDOVER_MARKER => Ok(OutputRoute::HandoverMarker),
             short_header::OUTPUT_HANDOVER_ACCEPTED => Ok(OutputRoute::HandoverAccepted),
             short_header::OUTPUT_HANDOVER_FINALIZED => Ok(OutputRoute::HandoverFinalized),
-            short_header::OUTPUT_MIRROR_ACKNOWLEDGED => Ok(OutputRoute::MirrorAcknowledged),
-            short_header::OUTPUT_DIVERGENCE_ACKNOWLEDGED => Ok(OutputRoute::DivergenceAcknowledged),
+            short_header::OUTPUT_MIRROR_ACKNOWLEDGED => {
+                Ok(OutputRoute::MirrorAcknowledged)
+            }
+            short_header::OUTPUT_DIVERGENCE_ACKNOWLEDGED => {
+                Ok(OutputRoute::DivergenceAcknowledged)
+            }
             short_header::OUTPUT_RECOVERY_COMPLETED => Ok(OutputRoute::RecoveryCompleted),
             short_header::OUTPUT_HANDOVER_REJECTED => Ok(OutputRoute::HandoverRejected),
             short_header::OUTPUT_REGISTERED => Ok(OutputRoute::Registered),
@@ -2618,40 +2497,66 @@ impl Output {
             short_header::OUTPUT_ROLLED_BACK => Ok(OutputRoute::RolledBack),
             short_header::OUTPUT_QUARANTINED => Ok(OutputRoute::Quarantined),
             short_header::OUTPUT_REJECTED => Ok(OutputRoute::Rejected),
-            short_header::OUTPUT_REQUEST_UNIMPLEMENTED => Ok(OutputRoute::RequestUnimplemented),
-            _ => Err(SignalFrameError::UnknownHeader { root_enum: "Output", header }),
+            short_header::OUTPUT_REQUEST_UNIMPLEMENTED => {
+                Ok(OutputRoute::RequestUnimplemented)
+            }
+            _ => {
+                Err(SignalFrameError::UnknownHeader {
+                    root_enum: "Output",
+                    header,
+                })
+            }
         }
     }
-
     pub fn encode_signal_frame(&self) -> Result<Vec<u8>, SignalFrameError> {
         let archive = rkyv::to_bytes::<rkyv::rancor::Error>(self)
             .map_err(|_| SignalFrameError::ArchiveEncode)?;
-        let mut frame = Vec::with_capacity(SIGNAL_SHORT_HEADER_BYTE_COUNT + archive.len());
+        let mut frame = Vec::with_capacity(
+            SIGNAL_SHORT_HEADER_BYTE_COUNT + archive.len(),
+        );
         frame.extend_from_slice(&self.short_header().to_le_bytes());
         frame.extend_from_slice(&archive);
         Ok(frame)
     }
-
-    pub fn decode_signal_frame(frame: &[u8]) -> Result<(OutputRoute, Self), SignalFrameError> {
+    pub fn decode_signal_frame(
+        frame: &[u8],
+    ) -> Result<(OutputRoute, Self), SignalFrameError> {
         if frame.len() < SIGNAL_SHORT_HEADER_BYTE_COUNT {
-            return Err(SignalFrameError::FrameTooShort { found: frame.len() });
+            return Err(SignalFrameError::FrameTooShort {
+                found: frame.len(),
+            });
         }
         let mut header_bytes = [0_u8; SIGNAL_SHORT_HEADER_BYTE_COUNT];
         header_bytes.copy_from_slice(&frame[..SIGNAL_SHORT_HEADER_BYTE_COUNT]);
         let header = u64::from_le_bytes(header_bytes);
         let route = Self::route_from_short_header(header)?;
-        let value = rkyv::from_bytes::<Self, rkyv::rancor::Error>(&frame[SIGNAL_SHORT_HEADER_BYTE_COUNT..])
+        let value = rkyv::from_bytes::<
+            Self,
+            rkyv::rancor::Error,
+        >(&frame[SIGNAL_SHORT_HEADER_BYTE_COUNT..])
             .map_err(|_| SignalFrameError::ArchiveDecode)?;
         let expected = value.short_header();
         if expected != header {
-            return Err(SignalFrameError::HeaderMismatch { expected, found: header });
+            return Err(SignalFrameError::HeaderMismatch {
+                expected,
+                found: header,
+            });
         }
         Ok((route, value))
     }
 }
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub enum NexusWorkRoute {
     SignalArrived,
     SemaWriteCompleted,
@@ -2671,7 +2576,16 @@ impl NexusWork {
 }
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub enum NexusActionRoute {
     CommandSemaWrite,
     CommandSemaRead,
@@ -2693,7 +2607,16 @@ impl NexusAction {
 }
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub enum SemaWriteInputRoute {
     AttemptUpgrade,
     ReadyToHandover,
@@ -2729,7 +2652,16 @@ impl SemaWriteInput {
 }
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub enum SemaReadInputRoute {
     Inspect,
     Report,
@@ -2749,7 +2681,16 @@ impl SemaReadInput {
 }
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub enum SemaWriteOutputRoute {
     UpgradeCompleted,
     UpgradeRejected,
@@ -2778,7 +2719,9 @@ impl SemaWriteOutput {
             Self::HandoverAccepted(_) => SemaWriteOutputRoute::HandoverAccepted,
             Self::HandoverFinalized(_) => SemaWriteOutputRoute::HandoverFinalized,
             Self::MirrorAcknowledged(_) => SemaWriteOutputRoute::MirrorAcknowledged,
-            Self::DivergenceAcknowledged(_) => SemaWriteOutputRoute::DivergenceAcknowledged,
+            Self::DivergenceAcknowledged(_) => {
+                SemaWriteOutputRoute::DivergenceAcknowledged
+            }
             Self::RecoveryCompleted(_) => SemaWriteOutputRoute::RecoveryCompleted,
             Self::HandoverRejected(_) => SemaWriteOutputRoute::HandoverRejected,
             Self::Registered(_) => SemaWriteOutputRoute::Registered,
@@ -2795,7 +2738,16 @@ impl SemaWriteOutput {
 }
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub enum SemaReadOutputRoute {
     InspectionReported,
     Reported,
@@ -2819,7 +2771,16 @@ impl SemaReadOutput {
 }
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub enum SignalObjectName {
     Input(InputRoute),
     Output(OutputRoute),
@@ -2830,51 +2791,58 @@ pub enum SignalObjectName {
     Triaged,
     Replied,
 }
-
 impl SignalObjectName {
     pub fn name(self) -> &'static str {
         match self {
-            Self::Input(route) => match route {
-                InputRoute::Inspect => "SignalInputInspect",
-                InputRoute::AttemptUpgrade => "SignalInputAttemptUpgrade",
-                InputRoute::Report => "SignalInputReport",
-                InputRoute::AskHandoverMarker => "SignalInputAskHandoverMarker",
-                InputRoute::ReadyToHandover => "SignalInputReadyToHandover",
-                InputRoute::HandoverCompleted => "SignalInputHandoverCompleted",
-                InputRoute::Mirror => "SignalInputMirror",
-                InputRoute::Divergence => "SignalInputDivergence",
-                InputRoute::RecoverFromFailure => "SignalInputRecoverFromFailure",
-                InputRoute::Register => "SignalInputRegister",
-                InputRoute::Allow => "SignalInputAllow",
-                InputRoute::Block => "SignalInputBlock",
-                InputRoute::Query => "SignalInputQuery",
-                InputRoute::ForceFlip => "SignalInputForceFlip",
-                InputRoute::Rollback => "SignalInputRollback",
-                InputRoute::Quarantine => "SignalInputQuarantine",
-            },
-            Self::Output(route) => match route {
-                OutputRoute::InspectionReported => "SignalOutputInspectionReported",
-                OutputRoute::UpgradeCompleted => "SignalOutputUpgradeCompleted",
-                OutputRoute::UpgradeRejected => "SignalOutputUpgradeRejected",
-                OutputRoute::Reported => "SignalOutputReported",
-                OutputRoute::HandoverMarker => "SignalOutputHandoverMarker",
-                OutputRoute::HandoverAccepted => "SignalOutputHandoverAccepted",
-                OutputRoute::HandoverFinalized => "SignalOutputHandoverFinalized",
-                OutputRoute::MirrorAcknowledged => "SignalOutputMirrorAcknowledged",
-                OutputRoute::DivergenceAcknowledged => "SignalOutputDivergenceAcknowledged",
-                OutputRoute::RecoveryCompleted => "SignalOutputRecoveryCompleted",
-                OutputRoute::HandoverRejected => "SignalOutputHandoverRejected",
-                OutputRoute::Registered => "SignalOutputRegistered",
-                OutputRoute::Allowed => "SignalOutputAllowed",
-                OutputRoute::Blocked => "SignalOutputBlocked",
-                OutputRoute::PolicyReported => "SignalOutputPolicyReported",
-                OutputRoute::PolicyRejected => "SignalOutputPolicyRejected",
-                OutputRoute::FlipForced => "SignalOutputFlipForced",
-                OutputRoute::RolledBack => "SignalOutputRolledBack",
-                OutputRoute::Quarantined => "SignalOutputQuarantined",
-                OutputRoute::Rejected => "SignalOutputRejected",
-                OutputRoute::RequestUnimplemented => "SignalOutputRequestUnimplemented",
-            },
+            Self::Input(route) => {
+                match route {
+                    InputRoute::Inspect => "SignalInputInspect",
+                    InputRoute::AttemptUpgrade => "SignalInputAttemptUpgrade",
+                    InputRoute::Report => "SignalInputReport",
+                    InputRoute::AskHandoverMarker => "SignalInputAskHandoverMarker",
+                    InputRoute::ReadyToHandover => "SignalInputReadyToHandover",
+                    InputRoute::HandoverCompleted => "SignalInputHandoverCompleted",
+                    InputRoute::Mirror => "SignalInputMirror",
+                    InputRoute::Divergence => "SignalInputDivergence",
+                    InputRoute::RecoverFromFailure => "SignalInputRecoverFromFailure",
+                    InputRoute::Register => "SignalInputRegister",
+                    InputRoute::Allow => "SignalInputAllow",
+                    InputRoute::Block => "SignalInputBlock",
+                    InputRoute::Query => "SignalInputQuery",
+                    InputRoute::ForceFlip => "SignalInputForceFlip",
+                    InputRoute::Rollback => "SignalInputRollback",
+                    InputRoute::Quarantine => "SignalInputQuarantine",
+                }
+            }
+            Self::Output(route) => {
+                match route {
+                    OutputRoute::InspectionReported => "SignalOutputInspectionReported",
+                    OutputRoute::UpgradeCompleted => "SignalOutputUpgradeCompleted",
+                    OutputRoute::UpgradeRejected => "SignalOutputUpgradeRejected",
+                    OutputRoute::Reported => "SignalOutputReported",
+                    OutputRoute::HandoverMarker => "SignalOutputHandoverMarker",
+                    OutputRoute::HandoverAccepted => "SignalOutputHandoverAccepted",
+                    OutputRoute::HandoverFinalized => "SignalOutputHandoverFinalized",
+                    OutputRoute::MirrorAcknowledged => "SignalOutputMirrorAcknowledged",
+                    OutputRoute::DivergenceAcknowledged => {
+                        "SignalOutputDivergenceAcknowledged"
+                    }
+                    OutputRoute::RecoveryCompleted => "SignalOutputRecoveryCompleted",
+                    OutputRoute::HandoverRejected => "SignalOutputHandoverRejected",
+                    OutputRoute::Registered => "SignalOutputRegistered",
+                    OutputRoute::Allowed => "SignalOutputAllowed",
+                    OutputRoute::Blocked => "SignalOutputBlocked",
+                    OutputRoute::PolicyReported => "SignalOutputPolicyReported",
+                    OutputRoute::PolicyRejected => "SignalOutputPolicyRejected",
+                    OutputRoute::FlipForced => "SignalOutputFlipForced",
+                    OutputRoute::RolledBack => "SignalOutputRolledBack",
+                    OutputRoute::Quarantined => "SignalOutputQuarantined",
+                    OutputRoute::Rejected => "SignalOutputRejected",
+                    OutputRoute::RequestUnimplemented => {
+                        "SignalOutputRequestUnimplemented"
+                    }
+                }
+            }
             Self::Started => "SignalStarted",
             Self::Stopped => "SignalStopped",
             Self::Admitted => "SignalAdmitted",
@@ -2886,7 +2854,16 @@ impl SignalObjectName {
 }
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub enum NexusObjectName {
     Work(NexusWorkRoute),
     Action(NexusActionRoute),
@@ -2895,23 +2872,26 @@ pub enum NexusObjectName {
     Entered,
     Decided,
 }
-
 impl NexusObjectName {
     pub fn name(self) -> &'static str {
         match self {
-            Self::Work(route) => match route {
-                NexusWorkRoute::SignalArrived => "NexusWorkSignalArrived",
-                NexusWorkRoute::SemaWriteCompleted => "NexusWorkSemaWriteCompleted",
-                NexusWorkRoute::SemaReadCompleted => "NexusWorkSemaReadCompleted",
-                NexusWorkRoute::EffectCompleted => "NexusWorkEffectCompleted",
-            },
-            Self::Action(route) => match route {
-                NexusActionRoute::CommandSemaWrite => "NexusActionCommandSemaWrite",
-                NexusActionRoute::CommandSemaRead => "NexusActionCommandSemaRead",
-                NexusActionRoute::ReplyToSignal => "NexusActionReplyToSignal",
-                NexusActionRoute::CommandEffect => "NexusActionCommandEffect",
-                NexusActionRoute::Continue => "NexusActionContinue",
-            },
+            Self::Work(route) => {
+                match route {
+                    NexusWorkRoute::SignalArrived => "NexusWorkSignalArrived",
+                    NexusWorkRoute::SemaWriteCompleted => "NexusWorkSemaWriteCompleted",
+                    NexusWorkRoute::SemaReadCompleted => "NexusWorkSemaReadCompleted",
+                    NexusWorkRoute::EffectCompleted => "NexusWorkEffectCompleted",
+                }
+            }
+            Self::Action(route) => {
+                match route {
+                    NexusActionRoute::CommandSemaWrite => "NexusActionCommandSemaWrite",
+                    NexusActionRoute::CommandSemaRead => "NexusActionCommandSemaRead",
+                    NexusActionRoute::ReplyToSignal => "NexusActionReplyToSignal",
+                    NexusActionRoute::CommandEffect => "NexusActionCommandEffect",
+                    NexusActionRoute::Continue => "NexusActionContinue",
+                }
+            }
             Self::Started => "NexusStarted",
             Self::Stopped => "NexusStopped",
             Self::Entered => "NexusEntered",
@@ -2921,7 +2901,16 @@ impl NexusObjectName {
 }
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub enum SemaObjectName {
     WriteInput(SemaWriteInputRoute),
     ReadInput(SemaReadInputRoute),
@@ -2932,57 +2921,96 @@ pub enum SemaObjectName {
     WriteApplied,
     ReadObserved,
 }
-
 impl SemaObjectName {
     pub fn name(self) -> &'static str {
         match self {
-            Self::WriteInput(route) => match route {
-                SemaWriteInputRoute::AttemptUpgrade => "SemaWriteInputAttemptUpgrade",
-                SemaWriteInputRoute::ReadyToHandover => "SemaWriteInputReadyToHandover",
-                SemaWriteInputRoute::HandoverCompleted => "SemaWriteInputHandoverCompleted",
-                SemaWriteInputRoute::Mirror => "SemaWriteInputMirror",
-                SemaWriteInputRoute::Divergence => "SemaWriteInputDivergence",
-                SemaWriteInputRoute::RecoverFromFailure => "SemaWriteInputRecoverFromFailure",
-                SemaWriteInputRoute::Register => "SemaWriteInputRegister",
-                SemaWriteInputRoute::Allow => "SemaWriteInputAllow",
-                SemaWriteInputRoute::Block => "SemaWriteInputBlock",
-                SemaWriteInputRoute::ForceFlip => "SemaWriteInputForceFlip",
-                SemaWriteInputRoute::Rollback => "SemaWriteInputRollback",
-                SemaWriteInputRoute::Quarantine => "SemaWriteInputQuarantine",
-            },
-            Self::ReadInput(route) => match route {
-                SemaReadInputRoute::Inspect => "SemaReadInputInspect",
-                SemaReadInputRoute::Report => "SemaReadInputReport",
-                SemaReadInputRoute::AskHandoverMarker => "SemaReadInputAskHandoverMarker",
-                SemaReadInputRoute::Query => "SemaReadInputQuery",
-            },
-            Self::WriteOutput(route) => match route {
-                SemaWriteOutputRoute::UpgradeCompleted => "SemaWriteOutputUpgradeCompleted",
-                SemaWriteOutputRoute::UpgradeRejected => "SemaWriteOutputUpgradeRejected",
-                SemaWriteOutputRoute::HandoverAccepted => "SemaWriteOutputHandoverAccepted",
-                SemaWriteOutputRoute::HandoverFinalized => "SemaWriteOutputHandoverFinalized",
-                SemaWriteOutputRoute::MirrorAcknowledged => "SemaWriteOutputMirrorAcknowledged",
-                SemaWriteOutputRoute::DivergenceAcknowledged => "SemaWriteOutputDivergenceAcknowledged",
-                SemaWriteOutputRoute::RecoveryCompleted => "SemaWriteOutputRecoveryCompleted",
-                SemaWriteOutputRoute::HandoverRejected => "SemaWriteOutputHandoverRejected",
-                SemaWriteOutputRoute::Registered => "SemaWriteOutputRegistered",
-                SemaWriteOutputRoute::Allowed => "SemaWriteOutputAllowed",
-                SemaWriteOutputRoute::Blocked => "SemaWriteOutputBlocked",
-                SemaWriteOutputRoute::PolicyRejected => "SemaWriteOutputPolicyRejected",
-                SemaWriteOutputRoute::FlipForced => "SemaWriteOutputFlipForced",
-                SemaWriteOutputRoute::RolledBack => "SemaWriteOutputRolledBack",
-                SemaWriteOutputRoute::Quarantined => "SemaWriteOutputQuarantined",
-                SemaWriteOutputRoute::Rejected => "SemaWriteOutputRejected",
-                SemaWriteOutputRoute::RequestUnimplemented => "SemaWriteOutputRequestUnimplemented",
-            },
-            Self::ReadOutput(route) => match route {
-                SemaReadOutputRoute::InspectionReported => "SemaReadOutputInspectionReported",
-                SemaReadOutputRoute::Reported => "SemaReadOutputReported",
-                SemaReadOutputRoute::HandoverMarker => "SemaReadOutputHandoverMarker",
-                SemaReadOutputRoute::PolicyReported => "SemaReadOutputPolicyReported",
-                SemaReadOutputRoute::PolicyRejected => "SemaReadOutputPolicyRejected",
-                SemaReadOutputRoute::RequestUnimplemented => "SemaReadOutputRequestUnimplemented",
-            },
+            Self::WriteInput(route) => {
+                match route {
+                    SemaWriteInputRoute::AttemptUpgrade => "SemaWriteInputAttemptUpgrade",
+                    SemaWriteInputRoute::ReadyToHandover => {
+                        "SemaWriteInputReadyToHandover"
+                    }
+                    SemaWriteInputRoute::HandoverCompleted => {
+                        "SemaWriteInputHandoverCompleted"
+                    }
+                    SemaWriteInputRoute::Mirror => "SemaWriteInputMirror",
+                    SemaWriteInputRoute::Divergence => "SemaWriteInputDivergence",
+                    SemaWriteInputRoute::RecoverFromFailure => {
+                        "SemaWriteInputRecoverFromFailure"
+                    }
+                    SemaWriteInputRoute::Register => "SemaWriteInputRegister",
+                    SemaWriteInputRoute::Allow => "SemaWriteInputAllow",
+                    SemaWriteInputRoute::Block => "SemaWriteInputBlock",
+                    SemaWriteInputRoute::ForceFlip => "SemaWriteInputForceFlip",
+                    SemaWriteInputRoute::Rollback => "SemaWriteInputRollback",
+                    SemaWriteInputRoute::Quarantine => "SemaWriteInputQuarantine",
+                }
+            }
+            Self::ReadInput(route) => {
+                match route {
+                    SemaReadInputRoute::Inspect => "SemaReadInputInspect",
+                    SemaReadInputRoute::Report => "SemaReadInputReport",
+                    SemaReadInputRoute::AskHandoverMarker => {
+                        "SemaReadInputAskHandoverMarker"
+                    }
+                    SemaReadInputRoute::Query => "SemaReadInputQuery",
+                }
+            }
+            Self::WriteOutput(route) => {
+                match route {
+                    SemaWriteOutputRoute::UpgradeCompleted => {
+                        "SemaWriteOutputUpgradeCompleted"
+                    }
+                    SemaWriteOutputRoute::UpgradeRejected => {
+                        "SemaWriteOutputUpgradeRejected"
+                    }
+                    SemaWriteOutputRoute::HandoverAccepted => {
+                        "SemaWriteOutputHandoverAccepted"
+                    }
+                    SemaWriteOutputRoute::HandoverFinalized => {
+                        "SemaWriteOutputHandoverFinalized"
+                    }
+                    SemaWriteOutputRoute::MirrorAcknowledged => {
+                        "SemaWriteOutputMirrorAcknowledged"
+                    }
+                    SemaWriteOutputRoute::DivergenceAcknowledged => {
+                        "SemaWriteOutputDivergenceAcknowledged"
+                    }
+                    SemaWriteOutputRoute::RecoveryCompleted => {
+                        "SemaWriteOutputRecoveryCompleted"
+                    }
+                    SemaWriteOutputRoute::HandoverRejected => {
+                        "SemaWriteOutputHandoverRejected"
+                    }
+                    SemaWriteOutputRoute::Registered => "SemaWriteOutputRegistered",
+                    SemaWriteOutputRoute::Allowed => "SemaWriteOutputAllowed",
+                    SemaWriteOutputRoute::Blocked => "SemaWriteOutputBlocked",
+                    SemaWriteOutputRoute::PolicyRejected => {
+                        "SemaWriteOutputPolicyRejected"
+                    }
+                    SemaWriteOutputRoute::FlipForced => "SemaWriteOutputFlipForced",
+                    SemaWriteOutputRoute::RolledBack => "SemaWriteOutputRolledBack",
+                    SemaWriteOutputRoute::Quarantined => "SemaWriteOutputQuarantined",
+                    SemaWriteOutputRoute::Rejected => "SemaWriteOutputRejected",
+                    SemaWriteOutputRoute::RequestUnimplemented => {
+                        "SemaWriteOutputRequestUnimplemented"
+                    }
+                }
+            }
+            Self::ReadOutput(route) => {
+                match route {
+                    SemaReadOutputRoute::InspectionReported => {
+                        "SemaReadOutputInspectionReported"
+                    }
+                    SemaReadOutputRoute::Reported => "SemaReadOutputReported",
+                    SemaReadOutputRoute::HandoverMarker => "SemaReadOutputHandoverMarker",
+                    SemaReadOutputRoute::PolicyReported => "SemaReadOutputPolicyReported",
+                    SemaReadOutputRoute::PolicyRejected => "SemaReadOutputPolicyRejected",
+                    SemaReadOutputRoute::RequestUnimplemented => {
+                        "SemaReadOutputRequestUnimplemented"
+                    }
+                }
+            }
             Self::Started => "SemaStarted",
             Self::Stopped => "SemaStopped",
             Self::WriteApplied => "SemaWriteApplied",
@@ -2992,17 +3020,33 @@ impl SemaObjectName {
 }
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub enum ObjectName {
     Signal(SignalObjectName),
     Nexus(NexusObjectName),
     Sema(SemaObjectName),
 }
-
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub struct TraceEvent(pub ObjectName);
-
 impl ObjectName {
     pub fn name(self) -> &'static str {
         match self {
@@ -3012,64 +3056,93 @@ impl ObjectName {
         }
     }
 }
-
 impl TraceEvent {
     pub fn new(object_name: ObjectName) -> Self {
         Self(object_name)
     }
-
     pub fn object_name(&self) -> ObjectName {
         self.0
     }
-
     pub fn name(&self) -> &'static str {
         self.0.name()
     }
 }
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub struct MessageIdentifier(pub Integer);
 #[cfg(feature = "nota-text")]
 impl MessageIdentifier {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(self) -> String {
         <Self as NotaEncode>::to_nota(&self)
     }
 }
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub struct OriginRoute(pub Integer);
 #[cfg(feature = "nota-text")]
 impl OriginRoute {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
-
     pub fn to_nota(self) -> String {
         <Self as NotaEncode>::to_nota(&self)
     }
 }
 
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
 pub enum MessageRoot {
     Input,
     Output,
 }
 
 pub mod schema {
-    #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+    #[derive(
+        rkyv::Archive,
+        rkyv::Serialize,
+        rkyv::Deserialize,
+        Clone,
+        Debug,
+        PartialEq,
+        Eq
+    )]
     pub enum Plane<SignalRoot, NexusRoot, SemaRoot> {
         Signal(super::Signal<SignalRoot>),
         Nexus(super::Nexus<NexusRoot>),
         Sema(super::Sema<SemaRoot>),
     }
-
     impl<SignalRoot, NexusRoot, SemaRoot> Plane<SignalRoot, NexusRoot, SemaRoot> {
         pub fn origin_route(&self) -> super::OriginRoute {
             match self {
@@ -3086,25 +3159,23 @@ pub struct Signal<Root> {
     pub origin_route: OriginRoute,
     pub root: Root,
 }
-
 impl<Root> Signal<Root> {
     pub fn new(origin_route: OriginRoute, root: Root) -> Self {
         Self { origin_route, root }
     }
-
     pub fn origin_route(&self) -> OriginRoute {
         self.origin_route
     }
-
     pub fn root(&self) -> &Root {
         &self.root
     }
-
     pub fn into_root(self) -> Root {
         self.root
     }
-
-    pub fn map_root<NextRoot>(self, map: impl FnOnce(Root) -> NextRoot) -> Signal<NextRoot> {
+    pub fn map_root<NextRoot>(
+        self,
+        map: impl FnOnce(Root) -> NextRoot,
+    ) -> Signal<NextRoot> {
         Signal::new(self.origin_route, map(self.root))
     }
 }
@@ -3114,25 +3185,23 @@ pub struct Nexus<Root> {
     pub origin_route: OriginRoute,
     pub root: Root,
 }
-
 impl<Root> Nexus<Root> {
     pub fn new(origin_route: OriginRoute, root: Root) -> Self {
         Self { origin_route, root }
     }
-
     pub fn origin_route(&self) -> OriginRoute {
         self.origin_route
     }
-
     pub fn root(&self) -> &Root {
         &self.root
     }
-
     pub fn into_root(self) -> Root {
         self.root
     }
-
-    pub fn map_root<NextRoot>(self, map: impl FnOnce(Root) -> NextRoot) -> Nexus<NextRoot> {
+    pub fn map_root<NextRoot>(
+        self,
+        map: impl FnOnce(Root) -> NextRoot,
+    ) -> Nexus<NextRoot> {
         Nexus::new(self.origin_route, map(self.root))
     }
 }
@@ -3142,25 +3211,23 @@ pub struct Sema<Root> {
     pub origin_route: OriginRoute,
     pub root: Root,
 }
-
 impl<Root> Sema<Root> {
     pub fn new(origin_route: OriginRoute, root: Root) -> Self {
         Self { origin_route, root }
     }
-
     pub fn origin_route(&self) -> OriginRoute {
         self.origin_route
     }
-
     pub fn root(&self) -> &Root {
         &self.root
     }
-
     pub fn into_root(self) -> Root {
         self.root
     }
-
-    pub fn map_root<NextRoot>(self, map: impl FnOnce(Root) -> NextRoot) -> Sema<NextRoot> {
+    pub fn map_root<NextRoot>(
+        self,
+        map: impl FnOnce(Root) -> NextRoot,
+    ) -> Sema<NextRoot> {
         Sema::new(self.origin_route, map(self.root))
     }
 }
@@ -3172,31 +3239,27 @@ pub struct MessageSent {
     pub root: MessageRoot,
     pub short_header: Integer,
 }
-
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct MessageProcessed<Reply> {
     pub identifier: MessageIdentifier,
     pub origin_route: OriginRoute,
     pub reply: Reply,
 }
-
 pub trait MessageSentHook {
     type Error;
-
     fn message_sent(&mut self, event: MessageSent) -> Result<(), Self::Error>;
 }
-
 pub trait MessageProcessedHook<Reply> {
     type Error;
-
-    fn message_processed(&mut self, event: MessageProcessed<Reply>) -> Result<(), Self::Error>;
+    fn message_processed(
+        &mut self,
+        event: MessageProcessed<Reply>,
+    ) -> Result<(), Self::Error>;
 }
-
 impl MessageSent {
     pub fn origin_route(&self) -> OriginRoute {
         self.origin_route
     }
-
     pub fn push_to<Hook>(&self, hook: &mut Hook) -> Result<(), Hook::Error>
     where
         Hook: MessageSentHook,
@@ -3204,24 +3267,27 @@ impl MessageSent {
         hook.message_sent(self.clone())
     }
 }
-
 impl<Reply> MessageProcessed<Reply> {
-    pub fn new(identifier: MessageIdentifier, origin_route: OriginRoute, reply: Reply) -> Self {
-        Self { identifier, origin_route, reply }
+    pub fn new(
+        identifier: MessageIdentifier,
+        origin_route: OriginRoute,
+        reply: Reply,
+    ) -> Self {
+        Self {
+            identifier,
+            origin_route,
+            reply,
+        }
     }
-
     pub fn identifier(&self) -> MessageIdentifier {
         self.identifier
     }
-
     pub fn origin_route(&self) -> OriginRoute {
         self.origin_route
     }
-
     pub fn into_reply(self) -> Reply {
         self.reply
     }
-
     pub fn push_to<Hook>(&self, hook: &mut Hook) -> Result<(), Hook::Error>
     where
         Hook: MessageProcessedHook<Reply>,
@@ -3230,14 +3296,11 @@ impl<Reply> MessageProcessed<Reply> {
         hook.message_processed(self.clone())
     }
 }
-
 impl Input {
     pub fn with_origin_route(self, origin_route: OriginRoute) -> Signal<Self> {
         Signal::new(origin_route, self)
     }
-
 }
-
 impl signal::Signal<Input> {
     pub fn message_sent(&self, identifier: MessageIdentifier) -> MessageSent {
         MessageSent {
@@ -3248,14 +3311,11 @@ impl signal::Signal<Input> {
         }
     }
 }
-
 impl Output {
     pub fn with_origin_route(self, origin_route: OriginRoute) -> Signal<Self> {
         Signal::new(origin_route, self)
     }
-
 }
-
 impl signal::Signal<Output> {
     pub fn message_sent(&self, identifier: MessageIdentifier) -> MessageSent {
         MessageSent {
@@ -3330,54 +3390,138 @@ impl nexus::Nexus<nexus::Work> {
     pub fn into_nexus_action(self) -> nexus::Nexus<nexus::Action> {
         let origin_route = self.origin_route();
         match self.into_root() {
-            NexusWork::SignalArrived(input) => match input {
-                Input::Inspect(payload) => NexusAction::from(SemaReadInput::Inspect(payload)),
-                Input::AttemptUpgrade(payload) => NexusAction::from(SemaWriteInput::AttemptUpgrade(payload)),
-                Input::Report(payload) => NexusAction::from(SemaReadInput::Report(payload)),
-                Input::AskHandoverMarker(payload) => NexusAction::from(SemaReadInput::AskHandoverMarker(payload)),
-                Input::ReadyToHandover(payload) => NexusAction::from(SemaWriteInput::ReadyToHandover(payload)),
-                Input::HandoverCompleted(payload) => NexusAction::from(SemaWriteInput::HandoverCompleted(payload)),
-                Input::Mirror(payload) => NexusAction::from(SemaWriteInput::Mirror(payload)),
-                Input::Divergence(payload) => NexusAction::from(SemaWriteInput::Divergence(payload)),
-                Input::RecoverFromFailure(payload) => NexusAction::from(SemaWriteInput::RecoverFromFailure(payload)),
-                Input::Register(payload) => NexusAction::from(SemaWriteInput::Register(payload)),
-                Input::Allow(payload) => NexusAction::from(SemaWriteInput::Allow(payload)),
-                Input::Block(payload) => NexusAction::from(SemaWriteInput::Block(payload)),
-                Input::Query(payload) => NexusAction::from(SemaReadInput::Query(payload)),
-                Input::ForceFlip(payload) => NexusAction::from(SemaWriteInput::ForceFlip(payload)),
-                Input::Rollback(payload) => NexusAction::from(SemaWriteInput::Rollback(payload)),
-                Input::Quarantine(payload) => NexusAction::from(SemaWriteInput::Quarantine(payload)),
-            },
-            NexusWork::SemaWriteCompleted(output) => match output {
-                SemaWriteOutput::UpgradeCompleted(payload) => NexusAction::from(Output::UpgradeCompleted(payload)),
-                SemaWriteOutput::UpgradeRejected(payload) => NexusAction::from(Output::UpgradeRejected(payload)),
-                SemaWriteOutput::HandoverAccepted(payload) => NexusAction::from(Output::HandoverAccepted(payload)),
-                SemaWriteOutput::HandoverFinalized(payload) => NexusAction::from(Output::HandoverFinalized(payload)),
-                SemaWriteOutput::MirrorAcknowledged(payload) => NexusAction::from(Output::MirrorAcknowledged(payload)),
-                SemaWriteOutput::DivergenceAcknowledged(payload) => NexusAction::from(Output::DivergenceAcknowledged(payload)),
-                SemaWriteOutput::RecoveryCompleted(payload) => NexusAction::from(Output::RecoveryCompleted(payload)),
-                SemaWriteOutput::HandoverRejected(payload) => NexusAction::from(Output::HandoverRejected(payload)),
-                SemaWriteOutput::Registered(payload) => NexusAction::from(Output::Registered(payload)),
-                SemaWriteOutput::Allowed(payload) => NexusAction::from(Output::Allowed(payload)),
-                SemaWriteOutput::Blocked(payload) => NexusAction::from(Output::Blocked(payload)),
-                SemaWriteOutput::PolicyRejected(payload) => NexusAction::from(Output::PolicyRejected(payload)),
-                SemaWriteOutput::FlipForced(payload) => NexusAction::from(Output::FlipForced(payload)),
-                SemaWriteOutput::RolledBack(payload) => NexusAction::from(Output::RolledBack(payload)),
-                SemaWriteOutput::Quarantined(payload) => NexusAction::from(Output::Quarantined(payload)),
-                SemaWriteOutput::Rejected(payload) => NexusAction::from(Output::Rejected(payload)),
-                SemaWriteOutput::RequestUnimplemented(payload) => NexusAction::from(Output::RequestUnimplemented(payload)),
-            },
-            NexusWork::SemaReadCompleted(output) => match output {
-                SemaReadOutput::InspectionReported(payload) => NexusAction::from(Output::InspectionReported(payload)),
-                SemaReadOutput::Reported(payload) => NexusAction::from(Output::Reported(payload)),
-                SemaReadOutput::HandoverMarker(payload) => NexusAction::from(Output::HandoverMarker(payload)),
-                SemaReadOutput::PolicyReported(payload) => NexusAction::from(Output::PolicyReported(payload)),
-                SemaReadOutput::PolicyRejected(payload) => NexusAction::from(Output::PolicyRejected(payload)),
-                SemaReadOutput::RequestUnimplemented(payload) => NexusAction::from(Output::RequestUnimplemented(payload)),
-            },
+            NexusWork::SignalArrived(input) => {
+                match input {
+                    Input::Inspect(payload) => {
+                        NexusAction::from(SemaReadInput::Inspect(payload))
+                    }
+                    Input::AttemptUpgrade(payload) => {
+                        NexusAction::from(SemaWriteInput::AttemptUpgrade(payload))
+                    }
+                    Input::Report(payload) => {
+                        NexusAction::from(SemaReadInput::Report(payload))
+                    }
+                    Input::AskHandoverMarker(payload) => {
+                        NexusAction::from(SemaReadInput::AskHandoverMarker(payload))
+                    }
+                    Input::ReadyToHandover(payload) => {
+                        NexusAction::from(SemaWriteInput::ReadyToHandover(payload))
+                    }
+                    Input::HandoverCompleted(payload) => {
+                        NexusAction::from(SemaWriteInput::HandoverCompleted(payload))
+                    }
+                    Input::Mirror(payload) => {
+                        NexusAction::from(SemaWriteInput::Mirror(payload))
+                    }
+                    Input::Divergence(payload) => {
+                        NexusAction::from(SemaWriteInput::Divergence(payload))
+                    }
+                    Input::RecoverFromFailure(payload) => {
+                        NexusAction::from(SemaWriteInput::RecoverFromFailure(payload))
+                    }
+                    Input::Register(payload) => {
+                        NexusAction::from(SemaWriteInput::Register(payload))
+                    }
+                    Input::Allow(payload) => {
+                        NexusAction::from(SemaWriteInput::Allow(payload))
+                    }
+                    Input::Block(payload) => {
+                        NexusAction::from(SemaWriteInput::Block(payload))
+                    }
+                    Input::Query(payload) => {
+                        NexusAction::from(SemaReadInput::Query(payload))
+                    }
+                    Input::ForceFlip(payload) => {
+                        NexusAction::from(SemaWriteInput::ForceFlip(payload))
+                    }
+                    Input::Rollback(payload) => {
+                        NexusAction::from(SemaWriteInput::Rollback(payload))
+                    }
+                    Input::Quarantine(payload) => {
+                        NexusAction::from(SemaWriteInput::Quarantine(payload))
+                    }
+                }
+            }
+            NexusWork::SemaWriteCompleted(output) => {
+                match output {
+                    SemaWriteOutput::UpgradeCompleted(payload) => {
+                        NexusAction::from(Output::UpgradeCompleted(payload))
+                    }
+                    SemaWriteOutput::UpgradeRejected(payload) => {
+                        NexusAction::from(Output::UpgradeRejected(payload))
+                    }
+                    SemaWriteOutput::HandoverAccepted(payload) => {
+                        NexusAction::from(Output::HandoverAccepted(payload))
+                    }
+                    SemaWriteOutput::HandoverFinalized(payload) => {
+                        NexusAction::from(Output::HandoverFinalized(payload))
+                    }
+                    SemaWriteOutput::MirrorAcknowledged(payload) => {
+                        NexusAction::from(Output::MirrorAcknowledged(payload))
+                    }
+                    SemaWriteOutput::DivergenceAcknowledged(payload) => {
+                        NexusAction::from(Output::DivergenceAcknowledged(payload))
+                    }
+                    SemaWriteOutput::RecoveryCompleted(payload) => {
+                        NexusAction::from(Output::RecoveryCompleted(payload))
+                    }
+                    SemaWriteOutput::HandoverRejected(payload) => {
+                        NexusAction::from(Output::HandoverRejected(payload))
+                    }
+                    SemaWriteOutput::Registered(payload) => {
+                        NexusAction::from(Output::Registered(payload))
+                    }
+                    SemaWriteOutput::Allowed(payload) => {
+                        NexusAction::from(Output::Allowed(payload))
+                    }
+                    SemaWriteOutput::Blocked(payload) => {
+                        NexusAction::from(Output::Blocked(payload))
+                    }
+                    SemaWriteOutput::PolicyRejected(payload) => {
+                        NexusAction::from(Output::PolicyRejected(payload))
+                    }
+                    SemaWriteOutput::FlipForced(payload) => {
+                        NexusAction::from(Output::FlipForced(payload))
+                    }
+                    SemaWriteOutput::RolledBack(payload) => {
+                        NexusAction::from(Output::RolledBack(payload))
+                    }
+                    SemaWriteOutput::Quarantined(payload) => {
+                        NexusAction::from(Output::Quarantined(payload))
+                    }
+                    SemaWriteOutput::Rejected(payload) => {
+                        NexusAction::from(Output::Rejected(payload))
+                    }
+                    SemaWriteOutput::RequestUnimplemented(payload) => {
+                        NexusAction::from(Output::RequestUnimplemented(payload))
+                    }
+                }
+            }
+            NexusWork::SemaReadCompleted(output) => {
+                match output {
+                    SemaReadOutput::InspectionReported(payload) => {
+                        NexusAction::from(Output::InspectionReported(payload))
+                    }
+                    SemaReadOutput::Reported(payload) => {
+                        NexusAction::from(Output::Reported(payload))
+                    }
+                    SemaReadOutput::HandoverMarker(payload) => {
+                        NexusAction::from(Output::HandoverMarker(payload))
+                    }
+                    SemaReadOutput::PolicyReported(payload) => {
+                        NexusAction::from(Output::PolicyReported(payload))
+                    }
+                    SemaReadOutput::PolicyRejected(payload) => {
+                        NexusAction::from(Output::PolicyRejected(payload))
+                    }
+                    SemaReadOutput::RequestUnimplemented(payload) => {
+                        NexusAction::from(Output::RequestUnimplemented(payload))
+                    }
+                }
+            }
             _ => panic!("nexus work cannot project to a generated nexus action"),
         }
-        .with_origin_route(origin_route)
+            .with_origin_route(origin_route)
     }
 }
 
@@ -3389,7 +3533,6 @@ impl nexus::Nexus<nexus::Action> {
             _ => panic!("nexus action is not a SEMA write input"),
         }
     }
-
     pub fn into_sema_read_input(self) -> sema::Sema<sema::ReadInput> {
         let origin_route = self.origin_route();
         match self.into_root() {
@@ -3397,7 +3540,6 @@ impl nexus::Nexus<nexus::Action> {
             _ => panic!("nexus action is not a SEMA read input"),
         }
     }
-
     pub fn into_signal_output(self) -> signal::Signal<signal::Output> {
         let origin_route = self.origin_route();
         match self.into_root() {
@@ -3421,44 +3563,71 @@ impl sema::Sema<sema::ReadOutput> {
     }
 }
 
+impl triad_runtime::NexusWork for NexusWork {}
+
+impl triad_runtime::SemaWriteInput for SemaWriteInput {}
+
+impl triad_runtime::SemaReadInput for SemaReadInput {}
+
+impl triad_runtime::NexusEffectCommand for NexusEffectCommand {}
+
+impl triad_runtime::NexusEffectResult for NexusEffectResult {}
+
+impl triad_runtime::SemaWriteOutput for SemaWriteOutput {}
+
+impl triad_runtime::SemaReadOutput for SemaReadOutput {}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ActorStartFailure {
     ResourceBusy(String),
     ConfigurationInvalid(String),
 }
-
 impl std::fmt::Display for ActorStartFailure {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::ResourceBusy(message) => write!(formatter, "actor resource busy: {message}"),
-            Self::ConfigurationInvalid(message) => write!(formatter, "actor configuration invalid: {message}"),
+            Self::ResourceBusy(message) => {
+                write!(formatter, "actor resource busy: {message}")
+            }
+            Self::ConfigurationInvalid(message) => {
+                write!(formatter, "actor configuration invalid: {message}")
+            }
         }
     }
 }
-
 impl std::error::Error for ActorStartFailure {}
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ActorStopFailure {
     ResourceLocked(String),
     ChildStillRunning(String),
 }
-
 impl std::fmt::Display for ActorStopFailure {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::ResourceLocked(message) => write!(formatter, "actor resource locked: {message}"),
-            Self::ChildStillRunning(message) => write!(formatter, "actor child still running: {message}"),
+            Self::ResourceLocked(message) => {
+                write!(formatter, "actor resource locked: {message}")
+            }
+            Self::ChildStillRunning(message) => {
+                write!(formatter, "actor child still running: {message}")
+            }
         }
     }
 }
-
 impl std::error::Error for ActorStopFailure {}
 
-pub type NexusRunnerNextStep = triad_runtime::NextStep<Output, SemaWriteInput, SemaReadInput, NexusEffectCommand, NexusWork>;
-
-impl NexusAction {
-    pub fn into_runner_next_step(self) -> NexusRunnerNextStep {
+pub type NexusRunnerNextStep = triad_runtime::NextStep<
+    Output,
+    SemaWriteInput,
+    SemaReadInput,
+    NexusEffectCommand,
+    NexusWork,
+>;
+impl triad_runtime::NexusAction for NexusAction {
+    type Reply = Output;
+    type SemaWrite = SemaWriteInput;
+    type SemaRead = SemaReadInput;
+    type Effect = NexusEffectCommand;
+    type Work = NexusWork;
+    fn into_next_step(self) -> NexusRunnerNextStep {
         match self {
             Self::CommandSemaWrite(input) => triad_runtime::NextStep::SemaWrite(input),
             Self::CommandSemaRead(input) => triad_runtime::NextStep::SemaRead(input),
@@ -3476,7 +3645,6 @@ pub trait SignalEngine {
     fn on_stop(&mut self) -> Result<(), ActorStopFailure> {
         Ok(())
     }
-
     fn trace_signal_activation(&self, _object_name: SignalObjectName) {}
     fn trace_signal_admitted(&self) {
         self.trace_signal_activation(SignalObjectName::Admitted);
@@ -3490,17 +3658,23 @@ pub trait SignalEngine {
     fn trace_signal_replied(&self) {
         self.trace_signal_activation(SignalObjectName::Replied);
     }
-
-    fn triage_inner(&self, input: signal::Signal<signal::Input>) -> nexus::Nexus<nexus::Work>;
-    fn reply_inner(&self, output: nexus::Nexus<nexus::Action>) -> signal::Signal<signal::Output>;
-
+    fn triage_inner(
+        &self,
+        input: signal::Signal<signal::Input>,
+    ) -> nexus::Nexus<nexus::Work>;
+    fn reply_inner(
+        &self,
+        output: nexus::Nexus<nexus::Action>,
+    ) -> signal::Signal<signal::Output>;
     fn triage(&self, input: signal::Signal<signal::Input>) -> nexus::Nexus<nexus::Work> {
         let output = self.triage_inner(input);
         self.trace_signal_triaged();
         output
     }
-
-    fn reply(&self, output: nexus::Nexus<nexus::Action>) -> signal::Signal<signal::Output> {
+    fn reply(
+        &self,
+        output: nexus::Nexus<nexus::Action>,
+    ) -> signal::Signal<signal::Output> {
         let signal_output = self.reply_inner(output);
         self.trace_signal_replied();
         signal_output
@@ -3514,7 +3688,6 @@ pub trait NexusEngine {
     fn on_stop(&mut self) -> Result<(), ActorStopFailure> {
         Ok(())
     }
-
     fn trace_nexus_activation(&self, _object_name: NexusObjectName) {}
     fn trace_nexus_entered(&self) {
         self.trace_nexus_activation(NexusObjectName::Entered);
@@ -3522,19 +3695,32 @@ pub trait NexusEngine {
     fn trace_nexus_decided(&self) {
         self.trace_nexus_activation(NexusObjectName::Decided);
     }
-
     fn continuation_limit(&self) -> triad_runtime::ContinuationLimit {
         triad_runtime::ContinuationLimit::default()
     }
-
-    fn apply_sema_write(&mut self, origin_route: OriginRoute, input: SemaWriteInput) -> SemaWriteOutput;
-    fn observe_sema_read(&self, origin_route: OriginRoute, input: SemaReadInput) -> SemaReadOutput;
+    fn apply_sema_write(
+        &mut self,
+        origin_route: OriginRoute,
+        input: SemaWriteInput,
+    ) -> SemaWriteOutput;
+    fn observe_sema_read(
+        &self,
+        origin_route: OriginRoute,
+        input: SemaReadInput,
+    ) -> SemaReadOutput;
     fn run_effect(&mut self, input: NexusEffectCommand) -> NexusEffectResult;
-    fn budget_exhausted_reply(&self, exhausted: triad_runtime::ContinuationExhausted) -> Output;
-
-    fn decide(&mut self, input: nexus::Nexus<nexus::Work>) -> nexus::Nexus<nexus::Action>;
-
-    fn execute(&mut self, input: nexus::Nexus<nexus::Work>) -> nexus::Nexus<nexus::Action>
+    fn budget_exhausted_reply(
+        &self,
+        exhausted: triad_runtime::ContinuationExhausted,
+    ) -> Output;
+    fn decide(
+        &mut self,
+        input: nexus::Nexus<nexus::Work>,
+    ) -> nexus::Nexus<nexus::Action>;
+    fn execute(
+        &mut self,
+        input: nexus::Nexus<nexus::Work>,
+    ) -> nexus::Nexus<nexus::Action>
     where
         Self: Sized,
     {
@@ -3554,14 +3740,13 @@ struct NexusRunnerAdapter<'engine, Engine> {
     engine: &'engine mut Engine,
     origin_route: OriginRoute,
 }
-
 impl<'engine, Engine> NexusRunnerAdapter<'engine, Engine> {
     fn new(engine: &'engine mut Engine, origin_route: OriginRoute) -> Self {
         Self { engine, origin_route }
     }
 }
-
-impl<'engine, Engine> triad_runtime::RunnerEngines for NexusRunnerAdapter<'engine, Engine>
+impl<'engine, Engine> triad_runtime::RunnerEngines
+for NexusRunnerAdapter<'engine, Engine>
 where
     Engine: NexusEngine,
 {
@@ -3570,28 +3755,41 @@ where
     type SemaRead = SemaReadInput;
     type Effect = NexusEffectCommand;
     type Work = NexusWork;
-
-    fn decide_next_step(&mut self, work: Self::Work) -> triad_runtime::runner::RunnerNextStep<Self> {
-        let action = NexusEngine::decide(self.engine, work.with_origin_route(self.origin_route)).into_root();
-        action.into_runner_next_step()
+    fn decide_next_step(
+        &mut self,
+        work: Self::Work,
+    ) -> triad_runtime::runner::RunnerNextStep<Self> {
+        let action = NexusEngine::decide(
+                self.engine,
+                work.with_origin_route(self.origin_route),
+            )
+            .into_root();
+        triad_runtime::NexusAction::into_next_step(action)
     }
-
     fn apply_sema_write(&mut self, write: Self::SemaWrite) -> Self::Work {
-        let output: SemaWriteOutput = NexusEngine::apply_sema_write(self.engine, self.origin_route, write);
+        let output: SemaWriteOutput = NexusEngine::apply_sema_write(
+            self.engine,
+            self.origin_route,
+            write,
+        );
         NexusWork::sema_write_completed(output)
     }
-
     fn observe_sema_read(&self, read: Self::SemaRead) -> Self::Work {
-        let output: SemaReadOutput = NexusEngine::observe_sema_read(self.engine, self.origin_route, read);
+        let output: SemaReadOutput = NexusEngine::observe_sema_read(
+            self.engine,
+            self.origin_route,
+            read,
+        );
         NexusWork::sema_read_completed(output)
     }
-
     fn run_effect(&mut self, effect: Self::Effect) -> Self::Work {
         let output: NexusEffectResult = NexusEngine::run_effect(self.engine, effect);
         NexusWork::effect_completed(output)
     }
-
-    fn budget_exhausted_reply(&self, exhausted: triad_runtime::ContinuationExhausted) -> Self::Reply {
+    fn budget_exhausted_reply(
+        &self,
+        exhausted: triad_runtime::ContinuationExhausted,
+    ) -> Self::Reply {
         NexusEngine::budget_exhausted_reply(self.engine, exhausted)
     }
 }
@@ -3603,7 +3801,6 @@ pub trait SemaEngine {
     fn on_stop(&mut self) -> Result<(), ActorStopFailure> {
         Ok(())
     }
-
     fn trace_sema_activation(&self, _object_name: SemaObjectName) {}
     fn trace_sema_write_applied(&self) {
         self.trace_sema_activation(SemaObjectName::WriteApplied);
@@ -3611,17 +3808,26 @@ pub trait SemaEngine {
     fn trace_sema_read_observed(&self) {
         self.trace_sema_activation(SemaObjectName::ReadObserved);
     }
-
-    fn apply_inner(&mut self, input: sema::Sema<sema::WriteInput>) -> sema::Sema<sema::WriteOutput>;
-    fn observe_inner(&self, input: sema::Sema<sema::ReadInput>) -> sema::Sema<sema::ReadOutput>;
-
-    fn apply(&mut self, input: sema::Sema<sema::WriteInput>) -> sema::Sema<sema::WriteOutput> {
+    fn apply_inner(
+        &mut self,
+        input: sema::Sema<sema::WriteInput>,
+    ) -> sema::Sema<sema::WriteOutput>;
+    fn observe_inner(
+        &self,
+        input: sema::Sema<sema::ReadInput>,
+    ) -> sema::Sema<sema::ReadOutput>;
+    fn apply(
+        &mut self,
+        input: sema::Sema<sema::WriteInput>,
+    ) -> sema::Sema<sema::WriteOutput> {
         let output = self.apply_inner(input);
         self.trace_sema_write_applied();
         output
     }
-
-    fn observe(&self, input: sema::Sema<sema::ReadInput>) -> sema::Sema<sema::ReadOutput> {
+    fn observe(
+        &self,
+        input: sema::Sema<sema::ReadInput>,
+    ) -> sema::Sema<sema::ReadOutput> {
         let output = self.observe_inner(input);
         self.trace_sema_read_observed();
         output
@@ -3630,14 +3836,14 @@ pub trait SemaEngine {
 
 pub trait UpgradeFrom<Previous>: Sized {
     type Error;
-
     fn upgrade_from(previous: Previous) -> Result<Self, Self::Error>;
 }
-
 pub trait AcceptPrevious<Previous>: UpgradeFrom<Previous> {
     fn accept_previous(previous: Previous) -> Result<Self, Self::Error> {
         Self::upgrade_from(previous)
     }
 }
-
-impl<Current, Previous> AcceptPrevious<Previous> for Current where Current: UpgradeFrom<Previous> {}
+impl<Current, Previous> AcceptPrevious<Previous> for Current
+where
+    Current: UpgradeFrom<Previous>,
+{}

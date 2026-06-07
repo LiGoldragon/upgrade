@@ -34,8 +34,8 @@ fn run() -> Result<(), String> {
     }
 
     let sandbox = sandbox_directory()?;
-    let source_copy = sandbox.join("source-copy.redb");
-    let target = sandbox.join("target-v0.1.1.redb");
+    let source_copy = sandbox.join("source-copy.sema");
+    let target = sandbox.join("target-v0.1.1.sema");
     fs::copy(&source, &source_copy).map_err(|error| {
         format!(
             "failed to copy source database {} into sandbox: {error}",
@@ -69,7 +69,7 @@ fn source_argument() -> Result<PathBuf, String> {
     let program = arguments.next().unwrap_or_default();
     let source = arguments.next().ok_or_else(|| {
         format!(
-            "usage: {} <path-to-v0.1.0-persona-spirit.redb>",
+            "usage: {} <path-to-v0.1.0-persona-spirit.sema>",
             Path::new(&program).display()
         )
     })?;

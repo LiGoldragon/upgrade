@@ -472,7 +472,7 @@ impl HandoverDriver {
                     .current
                     .recover_from_failure(RecoveryRequest {
                         component,
-                        failure_identifier: acceptance.accepted_marker.commit_sequence,
+                        failure_identifier: acceptance.accepted_marker.state_sequence,
                     })
                     .await;
                 return Err(error);
@@ -488,19 +488,19 @@ impl HandoverDriver {
             next.component.as_str(),
         )?;
         Self::ensure_marker_field(
-            "commit_sequence",
-            source.commit_sequence.to_string(),
-            next.commit_sequence.to_string(),
+            "state_sequence",
+            source.state_sequence.to_string(),
+            next.state_sequence.to_string(),
         )?;
         Self::ensure_marker_field(
-            "write_counter",
-            source.write_counter.to_string(),
-            next.write_counter.to_string(),
+            "mirrored_write_count",
+            source.mirrored_write_count.to_string(),
+            next.mirrored_write_count.to_string(),
         )?;
         Self::ensure_marker_field(
-            "last_record_identifier",
-            format!("{:?}", source.last_record_identifier),
-            format!("{:?}", next.last_record_identifier),
+            "record_frontier",
+            format!("{:?}", source.record_frontier),
+            format!("{:?}", next.record_frontier),
         )?;
         Ok(())
     }

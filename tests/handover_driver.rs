@@ -8,13 +8,13 @@ use signal_upgrade::{
 };
 use version_projection::{ComponentName as HandoverComponentName, ContractVersion};
 
-fn marker(commit_sequence: u64) -> HandoverMarker {
+fn marker(state_sequence: u64) -> HandoverMarker {
     HandoverMarker {
         component: HandoverComponentName::new("persona-spirit"),
         schema_hash: ContractVersion::new([1; 32]),
-        commit_sequence,
-        write_counter: 7,
-        last_record_identifier: Some(44),
+        state_sequence,
+        mirrored_write_count: 7,
+        record_frontier: Some(44),
         recorded_at_date: Date::new(2026, 5, 24),
         recorded_at_time: Time::new(12, 0, 0),
     }
@@ -86,7 +86,7 @@ async fn handover_driver_rejects_next_marker_drift_before_current_readiness() {
     assert!(matches!(
         error,
         upgrade::Error::NextHandoverMarkerMismatch {
-            field: "commit_sequence",
+            field: "state_sequence",
             ..
         }
     ));

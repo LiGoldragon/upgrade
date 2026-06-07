@@ -57,7 +57,7 @@
   RequestUnimplemented { reason UnimplementedReason }
   Date { year Integer month Integer day Integer }
   Time { hour Integer minute Integer second Integer }
-  HandoverMarker { component ComponentName schema_hash ContractVersion commit_sequence Integer write_counter Integer last_record_identifier (Optional Integer) recorded_at_date Date recorded_at_time Time }
+  HandoverMarker { component ComponentName schema_hash ContractVersion state_sequence Integer mirrored_write_count Integer record_frontier (Optional Integer) recorded_at_date Date recorded_at_time Time }
   MarkerRequest { component ComponentName }
   ReadinessReport { component ComponentName source_marker HandoverMarker }
   CompletionReport { component ComponentName accepted_marker HandoverMarker }
@@ -66,11 +66,11 @@
   RecoveryRequest { component ComponentName failure_identifier Integer }
   HandoverAcceptance { accepted_marker HandoverMarker }
   HandoverFinalization { finalized_marker HandoverMarker }
-  MirrorAcknowledgement { component ComponentName write_counter Integer }
+  MirrorAcknowledgement { component ComponentName mirrored_write_count Integer }
   DivergenceAcknowledgement { component ComponentName divergence_identifier Integer }
   RecoveryResult { component ComponentName recovered Boolean }
   HandoverRejection { component ComponentName reason HandoverRejectionReason }
-  HandoverRejectionReason [SchemaMismatch CommitSequenceAdvanced AlreadyInHandover NotReady]
+  HandoverRejectionReason [SchemaMismatch StateSequenceAdvanced AlreadyInHandover NotReady]
   DivergenceReason [NotRepresentable TargetUnavailable TargetRejected]
   MigrationState [Enabled Disabled]
   Registration { component ComponentName source Version target Version migration MigrationIdentifier state MigrationState }

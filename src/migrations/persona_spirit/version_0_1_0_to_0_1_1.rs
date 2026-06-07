@@ -331,8 +331,8 @@ mod tests {
     #[test]
     fn migrates_historical_certainty_records_to_current_magnitude_records() {
         let directory = tempdir().expect("tempdir");
-        let source = directory.path().join("spirit-v0.1.0.redb");
-        let target = directory.path().join("spirit-v0.1.1.redb");
+        let source = directory.path().join("spirit-v0.1.0.sema");
+        let target = directory.path().join("spirit-v0.1.1.sema");
         write_historical_fixture(&source);
 
         let result = migrate_paths(&source, &target).expect("migration succeeds");
@@ -344,7 +344,7 @@ mod tests {
         assert_eq!(records[0].entry.entry.certainty, Magnitude::Maximum);
         assert_eq!(records[1].entry.entry.certainty, Magnitude::Medium);
         assert_eq!(records[2].entry.entry.certainty, Magnitude::Minimum);
-        assert_eq!(records[0].entry.entry.topic.as_str(), "workspace");
+        assert_eq!(records[0].entry.entry.topics.as_slice()[0].as_str(), "workspace");
         assert_eq!(records[0].entry.date, current::Date::new(2026, 5, 21));
         assert_eq!(records[0].entry.time, current::Time::new(17, 30, 0));
     }
@@ -352,8 +352,8 @@ mod tests {
     #[test]
     fn migration_rejects_existing_target_database() {
         let directory = tempdir().expect("tempdir");
-        let source = directory.path().join("source.redb");
-        let target = directory.path().join("target.redb");
+        let source = directory.path().join("source.sema");
+        let target = directory.path().join("target.sema");
         write_historical_fixture(&source);
         std::fs::write(&target, b"already here").expect("target marker");
 
@@ -368,8 +368,8 @@ mod tests {
     #[test]
     fn migration_rejects_missing_source_database() {
         let directory = tempdir().expect("tempdir");
-        let source = directory.path().join("missing.redb");
-        let target = directory.path().join("target.redb");
+        let source = directory.path().join("missing.sema");
+        let target = directory.path().join("target.sema");
 
         let error = migrate_paths(&source, &target).expect_err("source missing");
 

@@ -61,10 +61,12 @@ output. No `sema-upgrade` migration modules, no Persona
 
 ## Status
 
-Next-stack port started. The runtime now carries checked-in
-schema-next artifacts beside the existing hand-written execution and
-handover code. The generated module is executable through tests but is
-not yet the daemon's load-bearing dispatch path; the binaries still
+Current-stack dependency refresh landed. The runtime carries checked-in
+schema-next/schema-rust-next artifacts, uses current signal-frame
+contracts for the ordinary and meta-policy sockets, routes durable
+database work through sema-engine, and has no signal-core or nota-codec
+dependency path. The generated module is executable through tests but
+is not yet the daemon's load-bearing dispatch path; the binaries still
 return placeholder replies.
 
 ## Pending schema-engine upgrade

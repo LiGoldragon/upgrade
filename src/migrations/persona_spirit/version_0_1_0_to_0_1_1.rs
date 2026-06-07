@@ -1,7 +1,8 @@
 use std::path::Path;
 
-use sema::SchemaVersion;
-use sema_engine::{Assertion, Engine, EngineOpen, QueryPlan, TableDescriptor, TableName};
+use sema_engine::{
+    Assertion, Engine, EngineOpen, QueryPlan, SchemaVersion, TableDescriptor, TableName,
+};
 use signal_upgrade::{Attempt, ComponentName, MigrationIdentifier, RejectionReason, Version};
 
 use crate::catalogue::{
@@ -344,7 +345,10 @@ mod tests {
         assert_eq!(records[0].entry.entry.certainty, Magnitude::Maximum);
         assert_eq!(records[1].entry.entry.certainty, Magnitude::Medium);
         assert_eq!(records[2].entry.entry.certainty, Magnitude::Minimum);
-        assert_eq!(records[0].entry.entry.topics.as_slice()[0].as_str(), "workspace");
+        assert_eq!(
+            records[0].entry.entry.topics.as_slice()[0].as_str(),
+            "workspace"
+        );
         assert_eq!(records[0].entry.date, current::Date::new(2026, 5, 21));
         assert_eq!(records[0].entry.time, current::Time::new(17, 30, 0));
     }

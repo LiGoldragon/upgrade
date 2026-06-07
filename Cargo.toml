@@ -2,7 +2,7 @@
 name         = "upgrade"
 version      = "0.1.0"
 edition      = "2024"
-rust-version = "1.85"
+rust-version = "1.88"
 license      = "MIT OR Apache-2.0"
 repository   = "https://github.com/LiGoldragon/upgrade"
 description  = "Runtime scaffold for the upgrade triad."
@@ -26,14 +26,12 @@ path = "src/bin/upgrade-spirit-sandbox-test.rs"
 
 [features]
 default = []
-nota-text = ["dep:nota-next"]
+nota-text = []
 
 [dependencies]
-nota-next              = { git = "https://github.com/LiGoldragon/nota-next.git", branch = "main", optional = true }
-nota-codec             = { git = "https://github.com/LiGoldragon/nota-codec.git", branch = "main" }
+nota-next              = { git = "https://github.com/LiGoldragon/nota-next.git", branch = "main" }
 meta-signal-upgrade   = { git = "https://github.com/LiGoldragon/meta-signal-upgrade.git", branch = "main" }
 rkyv                   = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
-sema                   = { git = "https://github.com/LiGoldragon/sema.git" }
 sema-engine            = { git = "https://github.com/LiGoldragon/sema-engine.git", branch = "main" }
 signal-executor        = { git = "https://github.com/LiGoldragon/signal-executor.git", branch = "main" }
 signal-frame           = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main" }

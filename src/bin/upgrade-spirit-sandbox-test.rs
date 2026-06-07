@@ -6,9 +6,9 @@ use std::{
 };
 
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
-use sema::SchemaVersion;
 use sema_engine::{
-    Engine, EngineOpen, EngineRecord, QueryPlan, RecordKey, TableDescriptor, TableName,
+    Engine, EngineOpen, EngineRecord, QueryPlan, RecordKey, SchemaVersion, TableDescriptor,
+    TableName,
 };
 use signal_persona_spirit::{Date, Entry, RecordIdentifier, Time};
 use signal_upgrade::{Attempt, ComponentName, Version};

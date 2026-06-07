@@ -2,7 +2,7 @@ use meta_signal_upgrade::{
     Reply as OwnerReply, RequestUnimplemented as OwnerRequestUnimplemented,
     UnimplementedReason as OwnerUnimplementedReason,
 };
-use nota_codec::{Encoder, NotaEncode};
+use nota_next::NotaEncode;
 use signal_upgrade::{
     Reply as OrdinaryReply, RequestUnimplemented as OrdinaryRequestUnimplemented,
     UnimplementedReason as OrdinaryUnimplementedReason,
@@ -41,9 +41,5 @@ where
 }
 
 fn encode_nota(value: &impl NotaEncode) -> String {
-    let mut encoder = Encoder::new();
-    value
-        .encode(&mut encoder)
-        .expect("placeholder reply must encode as NOTA");
-    encoder.into_string()
+    value.to_nota()
 }

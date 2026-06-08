@@ -77,9 +77,17 @@ Current-stack dependency refresh landed. The runtime carries checked-in
 schema-next/schema-rust-next artifacts, uses current signal-frame
 contracts for the ordinary and meta-policy sockets, routes durable
 database work through sema-engine, and has no signal-core, nota-codec,
-or default nota-next dependency path. The generated module is executable through tests but
-is not yet the daemon's load-bearing dispatch path; the binaries still
-return placeholder replies.
+or default nota-next dependency path. The migration catalogue engine now
+implements the generated `NexusEngine` and `SemaEngine` traits, and the
+runtime tests drive `Inspect`, `AttemptUpgrade`, and `Report` through the
+generated Nexus runner instead of the retired `signal-executor` path.
+
+The generated module is not yet the process daemon's socket dispatch
+path; the binaries still return placeholder replies. The external
+contract crates also still carry hand-written `signal_channel!` surfaces,
+so `upgrade` keeps a temporary adapter from those current contract
+operations into generated Signal input until the contract repos complete
+their schema-next cutover.
 
 ## Runtime Substance Path
 

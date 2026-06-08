@@ -1,10 +1,9 @@
-use signal_executor::Executor;
 use signal_frame::{AcceptedOutcome, RequestBuilder, RequestPayload, SubReply};
-use signal_sema::{SemaOperation, SemaOutcome, ToSemaOperation, ToSemaOutcome};
 use signal_upgrade::{
-    Attempt, ComponentName, Inspection, Operation, RejectionReason, Reply, ReportQuery, Version,
+    Attempt, ComponentName, Operation, RejectionReason, Reply, ReportQuery, Version,
 };
-use upgrade::{Command, Effect, Engine, MigrationCatalogue, first_reply};
+use upgrade::schema::lib::{NexusEngine, SemaEngine};
+use upgrade::{Engine, MigrationCatalogue};
 
 fn attempt(source: Version, target: Version) -> Attempt {
     Attempt {
@@ -38,27 +37,18 @@ fn module_index_names_persona_spirit_version_upgrade() {
 }
 
 #[test]
-fn commands_project_to_sema_classification() {
-    let inspect = Command::Inspect(Inspection::All);
-    let attempt = Command::AttemptUpgrade(supported_attempt());
-    let completed = Effect::Completed(signal_upgrade::Completion {
-        component: ComponentName::new("persona-spirit"),
-        source: Version::new(0, 1, 0),
-        target: Version::new(0, 1, 1),
-        migration: signal_upgrade::MigrationIdentifier::new("persona-spirit-0-1-0-to-0-1-1"),
-        changed_records: 0,
-    });
+fn engine_implements_generated_nexus_and_sema_traits() {
+    fn assert_nexus_engine<Runtime: NexusEngine>() {}
+    fn assert_sema_engine<Runtime: SemaEngine>() {}
 
-    assert_eq!(inspect.to_sema_operation(), SemaOperation::Match);
-    assert_eq!(attempt.to_sema_operation(), SemaOperation::Mutate);
-    assert_eq!(completed.to_sema_outcome(), SemaOutcome::Mutated);
+    assert_nexus_engine::<Engine>();
+    assert_sema_engine::<Engine>();
 }
 
 #[tokio::test]
-async fn supported_upgrade_runs_through_signal_executor() {
-    let mut executor: Executor<_, _> = Engine::prototype().executor();
-
-    let reply = executor
+async fn supported_upgrade_runs_through_generated_nexus_runner() {
+    let mut engine = Engine::prototype();
+    let reply = engine
         .execute(Operation::AttemptUpgrade(supported_attempt()).into_request())
         .await;
 
@@ -73,9 +63,9 @@ async fn supported_upgrade_runs_through_signal_executor() {
 
 #[tokio::test]
 async fn unsupported_upgrade_rejects_as_typed_contract_reply() {
-    let mut executor = Engine::prototype().executor();
+    let mut engine = Engine::prototype();
 
-    let reply = executor
+    let reply = engine
         .execute(Operation::AttemptUpgrade(unsupported_attempt()).into_request())
         .await;
 
@@ -88,15 +78,15 @@ async fn unsupported_upgrade_rejects_as_typed_contract_reply() {
 }
 
 #[tokio::test]
-async fn multi_operation_request_is_atomic_unit_for_executor() {
-    let mut executor = Engine::prototype().executor();
+async fn multi_operation_request_is_ordered_through_generated_runner() {
+    let mut engine = Engine::prototype();
     let request = RequestBuilder::new()
         .with(Operation::AttemptUpgrade(supported_attempt()))
         .with(Operation::Report(ReportQuery::All))
         .build()
         .expect("non-empty request");
 
-    let reply = executor.execute(request).await;
+    let reply = engine.execute(request).await;
 
     let signal_frame::Reply::Accepted {
         outcome,
@@ -115,4 +105,28 @@ async fn multi_operation_request_is_atomic_unit_for_executor() {
     };
     assert_eq!(report.completions.len(), 1);
     assert!(report.rejections.is_empty());
+}
+
+#[test]
+fn runtime_source_does_not_reintroduce_retired_executor() {
+    let source = std::fs::read_to_string("src/execution.rs").expect("execution source");
+    let underscore_name = ["signal", "executor"].join("_");
+    let hyphen_name = ["signal", "executor"].join("-");
+    let command_executor_name = ["Command", "Executor"].join("");
+    let lowering_trait_name = ["Lowering", "Trait"].join("");
+
+    assert!(!source.contains(&underscore_name));
+    assert!(!source.contains(&hyphen_name));
+    assert!(!source.contains(&command_executor_name));
+    assert!(!source.contains(&lowering_trait_name));
+}
+
+fn first_reply(reply: signal_frame::Reply<Reply>) -> Reply {
+    match reply {
+        signal_frame::Reply::Accepted { per_operation, .. } => match per_operation.into_head() {
+            SubReply::Ok(payload) => payload,
+            other => panic!("expected successful first reply, got {other:?}"),
+        },
+        other => panic!("expected accepted reply, got {other:?}"),
+    }
 }

@@ -27,7 +27,7 @@ pub use event::{
     ActiveVersion, ActiveVersionChangeSource, ActiveVersionChanged, PreparedEvent,
     VersionQuarantined,
 };
-pub use execution::{Command, Effect, Engine, EngineError, Lowering, first_reply};
+pub use execution::Engine;
 pub use handover::{
     DrivenHandover, HandoverClient, HandoverDriver, HandoverEndpoint, HandoverFrameCodec, Prepared,
     ReceivedHandoverRequest, SocketPath, Target, TargetInput, VersionLabel,

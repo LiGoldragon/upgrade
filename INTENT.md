@@ -51,6 +51,15 @@ Workspace-shape intent stays in `primary/INTENT.md`.
   daemon validates its signal-encoded configuration argument and returns
   only a scaffold acknowledgement. The CLI and daemon open no durable
   state until the runtime substance lands.
+- **Runtime execution uses generated Nexus/SEMA traits.** The migration
+  catalogue engine implements the generated `NexusEngine` and
+  `SemaEngine` traits from `src/schema/lib.rs`. The retired
+  `signal-executor` lowering / command-executor path is not part of the
+  runtime. Until `signal-upgrade` and `meta-signal-upgrade` finish their
+  schema-next cutover, the runtime carries only a thin adapter from the
+  current hand-written ordinary contract request into generated Signal
+  input for the implemented `Inspect`, `AttemptUpgrade`, and `Report`
+  operations.
 
 ## Anti-patterns
 

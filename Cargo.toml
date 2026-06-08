@@ -31,7 +31,6 @@ nota-text = [
     "dep:nota-next",
     "meta-signal-upgrade/nota-text",
     "signal-frame/nota-text",
-    "signal-sema/nota-text",
     "signal-spirit/nota-text",
     "signal-upgrade/nota-text",
     "version-projection/nota-text",
@@ -42,10 +41,8 @@ nota-next              = { git = "https://github.com/LiGoldragon/nota-next.git",
 meta-signal-upgrade   = { git = "https://github.com/LiGoldragon/meta-signal-upgrade.git", branch = "main", default-features = false }
 rkyv                   = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 sema-engine            = { git = "https://github.com/LiGoldragon/sema-engine.git", branch = "main", default-features = false }
-signal-executor        = { git = "https://github.com/LiGoldragon/signal-executor.git", branch = "main" }
 signal-frame           = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main", default-features = false }
 signal-spirit          = { git = "https://github.com/LiGoldragon/signal-spirit.git", branch = "main", default-features = false }
-signal-sema            = { git = "https://github.com/LiGoldragon/signal-sema.git", branch = "main", default-features = false }
 signal-upgrade         = { git = "https://github.com/LiGoldragon/signal-upgrade.git", branch = "main", default-features = false }
 thiserror              = "2"
 tokio                  = { version = "1", features = ["io-util", "net"] }

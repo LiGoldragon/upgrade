@@ -44,9 +44,17 @@ fn run() -> Result<(), String> {
     })?;
 
     let attempt = Attempt {
-        component: ComponentName::new("persona-spirit"),
-        source: Version::new(0, 1, 0),
-        target: Version::new(0, 1, 1),
+        component: ComponentName::from("persona-spirit"),
+        source: Version {
+            major: 0,
+            minor: 1,
+            patch: 0,
+        },
+        target: Version {
+            major: 0,
+            minor: 1,
+            patch: 1,
+        },
     };
     let request = DatabaseMigration::new(attempt, &source_copy, &target);
     let completion = MigrationCatalogue::prototype()

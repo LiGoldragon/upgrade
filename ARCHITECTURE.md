@@ -66,7 +66,8 @@ database code are present in U1.
   explicit CLI/debug/audit projection feature.
 - The CLI and daemon do not open durable state in U1.
 - The runtime depends on `signal-upgrade` and
-  `meta-signal-upgrade`; it does not duplicate their wire records.
+  `meta-signal-upgrade`; it does not carry parallel hand-written
+  contract records.
 - Historical Spirit store migrations depend on `signal-spirit`, the
   renamed ordinary Spirit contract, not on `signal-persona-spirit`.
 - U2 and U3 populate the contracts before U4 moves runtime substance.
@@ -84,10 +85,9 @@ generated Nexus runner instead of the retired `signal-executor` path.
 
 The generated module is not yet the process daemon's socket dispatch
 path; the binaries still return placeholder replies. The external
-contract crates also still carry hand-written `signal_channel!` surfaces,
-so `upgrade` keeps a temporary adapter from those current contract
-operations into generated Signal input until the contract repos complete
-their schema-next cutover.
+contract crates are schema-derived, and `upgrade` projects their
+generated `Input`/`Output` roots into the daemon's generated runtime
+schema instead of depending on any hand-written channel surface.
 
 ## Runtime Substance Path
 

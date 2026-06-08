@@ -1,26 +1,26 @@
 use meta_signal_upgrade::{
-    Reply as OwnerReply, RequestUnimplemented as OwnerRequestUnimplemented,
+    Output as OwnerOutput, RequestUnimplemented as OwnerRequestUnimplemented,
     UnimplementedReason as OwnerUnimplementedReason,
 };
 #[cfg(feature = "nota-text")]
 use nota_next::NotaEncode;
 use signal_upgrade::{
-    Reply as OrdinaryReply, RequestUnimplemented as OrdinaryRequestUnimplemented,
+    Output as OrdinaryOutput, RequestUnimplemented as OrdinaryRequestUnimplemented,
     UnimplementedReason as OrdinaryUnimplementedReason,
 };
 
 use crate::{Error, Invocation};
 
-pub fn ordinary_placeholder_reply() -> OrdinaryReply {
-    OrdinaryReply::RequestUnimplemented(OrdinaryRequestUnimplemented {
-        reason: OrdinaryUnimplementedReason::NotBuiltYet,
-    })
+pub fn ordinary_placeholder_reply() -> OrdinaryOutput {
+    OrdinaryOutput::RequestUnimplemented(OrdinaryRequestUnimplemented::new(
+        OrdinaryUnimplementedReason::NotBuiltYet,
+    ))
 }
 
-pub fn owner_placeholder_reply() -> OwnerReply {
-    OwnerReply::RequestUnimplemented(OwnerRequestUnimplemented {
-        reason: OwnerUnimplementedReason::NotBuiltYet,
-    })
+pub fn owner_placeholder_reply() -> OwnerOutput {
+    OwnerOutput::RequestUnimplemented(OwnerRequestUnimplemented::new(
+        OwnerUnimplementedReason::NotBuiltYet,
+    ))
 }
 
 #[cfg(feature = "nota-text")]

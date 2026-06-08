@@ -3,7 +3,7 @@ use std::path::Path;
 use sema_engine::{
     Assertion, Engine, EngineOpen, QueryPlan, SchemaVersion, TableDescriptor, TableName,
 };
-use signal_upgrade::{Attempt, ComponentName, MigrationIdentifier, RejectionReason, Version};
+use signal_upgrade::{Attempt, RejectionReason, Version};
 
 use crate::catalogue::{
     DatabaseMigration, DatabaseMigrationError, DatabaseMigrationResult, MigrationModule,
@@ -12,8 +12,16 @@ use crate::catalogue::{
 
 pub const COMPONENT: &str = "persona-spirit";
 pub const IDENTIFIER: &str = "persona-spirit-0-1-0-to-0-1-1";
-pub const SOURCE: Version = Version::new(0, 1, 0);
-pub const TARGET: Version = Version::new(0, 1, 1);
+pub const SOURCE: Version = Version {
+    major: 0,
+    minor: 1,
+    patch: 0,
+};
+pub const TARGET: Version = Version {
+    major: 0,
+    minor: 1,
+    patch: 1,
+};
 
 const SPIRIT_SCHEMA_VERSION: SchemaVersion = SchemaVersion::new(1);
 const RECORDS: TableName = TableName::new("records");
@@ -21,10 +29,10 @@ const RECORDS: TableName = TableName::new("records");
 pub fn module() -> MigrationModule {
     MigrationModule::new(
         supported_migration(
-            ComponentName::new(COMPONENT),
-            SOURCE,
-            TARGET,
-            MigrationIdentifier::new(IDENTIFIER),
+            String::from(COMPONENT),
+            SOURCE.clone(),
+            TARGET.clone(),
+            String::from(IDENTIFIER),
         ),
         run,
     )

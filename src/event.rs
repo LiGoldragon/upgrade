@@ -1,6 +1,5 @@
 use meta_signal_upgrade::{ForceFlip, Quarantine, Rollback};
-use signal_upgrade::{ComponentName, HandoverMarker};
-use version_projection::{ComponentName as ProjectionComponentName, ContractVersion};
+use signal_upgrade::{ComponentName, ContractVersion, HandoverMarker};
 
 use crate::handover::{SocketPath, Target, VersionLabel};
 
@@ -88,7 +87,7 @@ impl ActiveVersionChanged {
         Self {
             component: target.component().clone(),
             active_version: target.next_version().clone(),
-            schema_hash: marker.schema_hash,
+            schema_hash: marker.schema_hash.clone(),
             source: ActiveVersionChangeSource::HandoverMarker {
                 state_sequence: marker.state_sequence,
             },
@@ -97,22 +96,22 @@ impl ActiveVersionChanged {
 
     pub fn from_force_flip(order: &ForceFlip) -> Self {
         Self {
-            component: component_from_projection(&order.component),
+            component: order.component.clone(),
             active_version: VersionLabel::from(&order.target_version.label),
-            schema_hash: order.target_version.contract_version,
+            schema_hash: contract_version_from_meta(&order.target_version.contract_version),
             source: ActiveVersionChangeSource::ForceFlip {
-                reason: order.reason,
+                reason: order.reason.clone(),
             },
         }
     }
 
     pub fn from_rollback(order: &Rollback) -> Self {
         Self {
-            component: component_from_projection(&order.component),
+            component: order.component.clone(),
             active_version: VersionLabel::from(&order.restore_version.label),
-            schema_hash: order.restore_version.contract_version,
+            schema_hash: contract_version_from_meta(&order.restore_version.contract_version),
             source: ActiveVersionChangeSource::Rollback {
-                reason: order.reason,
+                reason: order.reason.clone(),
             },
         }
     }
@@ -126,7 +125,7 @@ impl ActiveVersionChanged {
     }
 
     pub fn schema_hash(&self) -> ContractVersion {
-        self.schema_hash
+        self.schema_hash.clone()
     }
 
     pub fn source(&self) -> &ActiveVersionChangeSource {
@@ -153,10 +152,10 @@ pub struct VersionQuarantined {
 impl VersionQuarantined {
     pub fn from_quarantine(order: &Quarantine) -> Self {
         Self {
-            component: component_from_projection(&order.component),
+            component: order.component.clone(),
             version: VersionLabel::from(&order.version.label),
-            schema_hash: order.version.contract_version,
-            reason: order.reason,
+            schema_hash: contract_version_from_meta(&order.version.contract_version),
+            reason: order.reason.clone(),
         }
     }
 
@@ -169,11 +168,11 @@ impl VersionQuarantined {
     }
 
     pub fn schema_hash(&self) -> ContractVersion {
-        self.schema_hash
+        self.schema_hash.clone()
     }
 
     pub fn reason(&self) -> meta_signal_upgrade::QuarantineReason {
-        self.reason
+        self.reason.clone()
     }
 }
 
@@ -204,7 +203,7 @@ impl ActiveVersion {
         Self::new(
             change.component.clone(),
             change.active_version.clone(),
-            change.schema_hash,
+            change.schema_hash.clone(),
             change.source.clone(),
         )
     }
@@ -218,7 +217,7 @@ impl ActiveVersion {
     }
 
     pub fn schema_hash(&self) -> ContractVersion {
-        self.schema_hash
+        self.schema_hash.clone()
     }
 
     pub fn source(&self) -> &ActiveVersionChangeSource {
@@ -230,6 +229,6 @@ impl ActiveVersion {
     }
 }
 
-fn component_from_projection(component: &ProjectionComponentName) -> ComponentName {
-    ComponentName::new(component.as_str())
+fn contract_version_from_meta(value: &meta_signal_upgrade::ContractVersion) -> ContractVersion {
+    ContractVersion::new(value.payload().clone())
 }

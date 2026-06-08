@@ -36,9 +36,10 @@ Workspace-shape intent stays in `primary/INTENT.md`.
   are rejected rather than treated as request data.
 - **The runtime depends on the contracts; it does not duplicate them.**
   Wire records live in `signal-upgrade` and `meta-signal-upgrade`; the
-  runtime imports them. Historical Spirit data migrations import the
-  current Spirit contract from `signal-spirit`, not the retired
-  `signal-persona-spirit` crate name.
+  runtime imports their generated roots and projects them into its
+  daemon-internal runtime schema. Historical Spirit data migrations
+  import the current Spirit contract from `signal-spirit`, not the
+  retired `signal-persona-spirit` crate name.
 - **Process lifecycle authority stays with Persona.** The upgrade daemon
   asks Persona to start next-version units rather than talking to
   systemd directly.
@@ -55,11 +56,10 @@ Workspace-shape intent stays in `primary/INTENT.md`.
   catalogue engine implements the generated `NexusEngine` and
   `SemaEngine` traits from `src/schema/lib.rs`. The retired
   `signal-executor` lowering / command-executor path is not part of the
-  runtime. Until `signal-upgrade` and `meta-signal-upgrade` finish their
-  schema-next cutover, the runtime carries only a thin adapter from the
-  current hand-written ordinary contract request into generated Signal
-  input for the implemented `Inspect`, `AttemptUpgrade`, and `Report`
-  operations.
+  runtime. `signal-upgrade` and `meta-signal-upgrade` are
+  schema-derived contract crates; the runtime carries only a typed
+  projection from those generated contract roots into the daemon's
+  generated Signal/Nexus/SEMA roots.
 
 ## Anti-patterns
 
@@ -71,9 +71,9 @@ Workspace-shape intent stays in `primary/INTENT.md`.
 
 ## See also
 
-- `ARCHITECTURE.md` — role, boundaries, the skeletal U1 shape, the
+- `ARCHITECTURE.md` - role, boundaries, the skeletal U1 shape, the
   pending schema-engine upgrade, and code map.
-- `../signal-upgrade/INTENT.md` — ordinary migration-attempt contract.
-- `../meta-signal-upgrade/INTENT.md` — meta policy contract.
-- `primary/skills/component-triad.md` — triad structure and the
+- `../signal-upgrade/INTENT.md` - ordinary migration-attempt contract.
+- `../meta-signal-upgrade/INTENT.md` - meta policy contract.
+- `primary/skills/component-triad.md` - triad structure and the
   compile-time module index for migration dispatch.

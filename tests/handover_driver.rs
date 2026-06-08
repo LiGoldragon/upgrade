@@ -3,26 +3,33 @@ use tokio::net::UnixListener;
 use upgrade::{HandoverDriver, HandoverFrameCodec, SocketPath, Target, TargetInput, VersionLabel};
 
 use signal_upgrade::{
-    ComponentName, Date, HandoverAcceptance, HandoverFinalization, HandoverMarker,
-    Operation as HandoverOperation, Reply as HandoverReply, Time,
+    ComponentName, ContractVersion, Date, HandoverAcceptance, HandoverFinalization, HandoverMarker,
+    Input as HandoverOperation, Output as HandoverReply, Time,
 };
-use version_projection::{ComponentName as HandoverComponentName, ContractVersion};
 
 fn marker(state_sequence: u64) -> HandoverMarker {
     HandoverMarker {
-        component: HandoverComponentName::new("persona-spirit"),
-        schema_hash: ContractVersion::new([1; 32]),
+        component: ComponentName::from("persona-spirit"),
+        schema_hash: ContractVersion::new(vec![1; 32]),
         state_sequence,
         mirrored_write_count: 7,
         record_frontier: Some(44),
-        recorded_at_date: Date::new(2026, 5, 24),
-        recorded_at_time: Time::new(12, 0, 0),
+        recorded_at_date: Date {
+            year: 2026,
+            month: 5,
+            day: 24,
+        },
+        recorded_at_time: Time {
+            hour: 12,
+            minute: 0,
+            second: 0,
+        },
     }
 }
 
 fn target(current_socket: &std::path::Path, next_socket: &std::path::Path) -> Target {
     Target::from_input(TargetInput {
-        component: ComponentName::new("persona-spirit"),
+        component: ComponentName::from("persona-spirit"),
         current_version: VersionLabel::new("v0.1.0"),
         next_version: VersionLabel::new("v0.1.1"),
         current_meta_socket_path: SocketPath::new("/run/persona/spirit/v0.1.0/meta.sock"),
@@ -49,8 +56,8 @@ async fn handover_driver_drives_current_endpoint_after_matching_next_marker() {
         .expect("handover succeeds");
 
     assert_eq!(driven.marker(), &marker);
-    assert_eq!(driven.acceptance().accepted_marker, marker);
-    assert_eq!(driven.finalization().finalized_marker, marker);
+    assert_eq!(driven.acceptance().payload(), &marker);
+    assert_eq!(driven.finalization().payload(), &marker);
 
     let current_operations = current.await.expect("current task");
     let next_operations = next.await.expect("next task");
@@ -113,14 +120,10 @@ async fn serve_endpoint(
                 HandoverReply::HandoverMarker(marker.clone())
             }
             HandoverOperation::ReadyToHandover(report) => {
-                HandoverReply::HandoverAccepted(HandoverAcceptance {
-                    accepted_marker: report.source_marker,
-                })
+                HandoverReply::HandoverAccepted(HandoverAcceptance::new(report.source_marker))
             }
             HandoverOperation::HandoverCompleted(report) => {
-                HandoverReply::HandoverFinalized(HandoverFinalization {
-                    finalized_marker: report.accepted_marker,
-                })
+                HandoverReply::HandoverFinalized(HandoverFinalization::new(report.accepted_marker))
             }
             other => panic!("unexpected operation {other:?}"),
         };

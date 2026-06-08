@@ -10,7 +10,7 @@ fn assert_placeholder_reply(binary: &str, argument: &str) {
     assert!(output.status.success(), "status: {:?}", output.status);
     assert_eq!(
         String::from_utf8(output.stdout).expect("stdout"),
-        "(RequestUnimplemented (NotBuiltYet))\n"
+        "(RequestUnimplemented NotBuiltYet)\n"
     );
     assert!(output.stderr.is_empty());
 }

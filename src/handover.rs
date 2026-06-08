@@ -6,13 +6,11 @@ use signal_frame::{
 };
 use signal_upgrade::{
     CompletionReport, ComponentName, Frame as HandoverFrame, FrameBody as HandoverFrameBody,
-    HandoverAcceptance, HandoverFinalization, HandoverMarker, MarkerRequest,
-    Operation as HandoverOperation, ReadinessReport, RecoveryRequest, RecoveryResult,
-    Reply as HandoverReply,
+    HandoverAcceptance, HandoverFinalization, HandoverMarker, Input as HandoverOperation,
+    MarkerRequest, Output as HandoverReply, ReadinessReport, RecoveryRequest, RecoveryResult,
 };
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::UnixStream;
-use version_projection::ComponentName as HandoverComponentName;
 
 use crate::error::{Error, Result};
 
@@ -42,7 +40,7 @@ impl VersionLabel {
 
 impl From<&meta_signal_upgrade::VersionLabel> for VersionLabel {
     fn from(value: &meta_signal_upgrade::VersionLabel) -> Self {
-        Self::new(value.as_str())
+        Self::new(value.clone())
     }
 }
 
@@ -116,9 +114,7 @@ impl Target {
     }
 
     pub fn prepare(&self) -> Prepared {
-        let request = MarkerRequest {
-            component: HandoverComponentName::new(self.component.as_str()),
-        };
+        let request = MarkerRequest::new(self.component.clone());
         Prepared {
             target: self.clone(),
             first_handover_operation: HandoverOperation::AskHandoverMarker(request),
@@ -437,18 +433,14 @@ impl HandoverDriver {
     }
 
     pub async fn drive_current_side(&self) -> Result<DrivenHandover> {
-        let component = HandoverComponentName::new(self.target.component().as_str());
+        let component = self.target.component().clone();
         let marker = self
             .current
-            .ask_marker(MarkerRequest {
-                component: component.clone(),
-            })
+            .ask_marker(MarkerRequest::new(component.clone()))
             .await?;
         let next_marker = self
             .next
-            .ask_marker(MarkerRequest {
-                component: component.clone(),
-            })
+            .ask_marker(MarkerRequest::new(component.clone()))
             .await?;
         Self::ensure_next_marker_matches(&marker, &next_marker)?;
         let acceptance = self
@@ -458,11 +450,12 @@ impl HandoverDriver {
                 source_marker: marker.clone(),
             })
             .await?;
+        let accepted_marker = acceptance_marker(&acceptance).clone();
         let finalization = match self
             .current
             .complete_handover(CompletionReport {
                 component: component.clone(),
-                accepted_marker: acceptance.accepted_marker.clone(),
+                accepted_marker: accepted_marker.clone(),
             })
             .await
         {
@@ -472,7 +465,7 @@ impl HandoverDriver {
                     .current
                     .recover_from_failure(RecoveryRequest {
                         component,
-                        failure_identifier: acceptance.accepted_marker.state_sequence,
+                        failure_identifier: accepted_marker.state_sequence,
                     })
                     .await;
                 return Err(error);
@@ -522,4 +515,8 @@ impl HandoverDriver {
             })
         }
     }
+}
+
+fn acceptance_marker(acceptance: &HandoverAcceptance) -> &HandoverMarker {
+    acceptance.payload()
 }

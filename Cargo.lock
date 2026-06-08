@@ -313,16 +313,14 @@ checksum = "6b947ae49db0d222b1dbc6b113ce7248a3fc3a6ca21b696717bfc000ba4484d8"
 [[package]]
 name = "meta-signal-upgrade"
 version = "0.2.2"
-source = "git+https://github.com/LiGoldragon/meta-signal-upgrade.git?branch=main#2ee978d33e907998966709b49a41db3ef9befe86"
+source = "git+https://github.com/LiGoldragon/meta-signal-upgrade.git?branch=main#92dab03df5ce52b9bd5fdd5b919f07f8195a6258"
 dependencies = [
  "nota-next",
  "rkyv",
  "schema-next",
  "schema-rust-next",
  "signal-frame",
- "signal-upgrade",
  "thiserror",
- "version-projection",
 ]
 
 [[package]]
@@ -535,7 +533,7 @@ dependencies = [
 [[package]]
 name = "schema-rust-next"
 version = "0.5.1"
-source = "git+https://github.com/LiGoldragon/schema-rust-next.git?branch=main#aa4b80e1509f2ba6d344f8ead523b32675b21f21"
+source = "git+https://github.com/LiGoldragon/schema-rust-next.git?branch=main#fc7db9fad016384331498c32c73ea5733947aaef"
 dependencies = [
  "prettyplease",
  "proc-macro2",
@@ -619,7 +617,7 @@ dependencies = [
 [[package]]
 name = "signal-frame"
 version = "0.2.1"
-source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#8b128d3648935d9d322d5c4985d5b347aaeecddd"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#166bda84dc63bf8461fff11a41c43d6a1c92a941"
 dependencies = [
  "nota-next",
  "paste",
@@ -631,7 +629,7 @@ dependencies = [
 [[package]]
 name = "signal-frame-macros"
 version = "0.1.1"
-source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#8b128d3648935d9d322d5c4985d5b347aaeecddd"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#166bda84dc63bf8461fff11a41c43d6a1c92a941"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -662,7 +660,7 @@ dependencies = [
 [[package]]
 name = "signal-upgrade"
 version = "0.2.2"
-source = "git+https://github.com/LiGoldragon/signal-upgrade.git?branch=main#a8a66bb0a0e45e50337ebd19241aa79300475b62"
+source = "git+https://github.com/LiGoldragon/signal-upgrade.git?branch=main#f7f4e8d19719da00b11ea784a8b3aa6672aa6888"
 dependencies = [
  "nota-next",
  "rkyv",
@@ -670,7 +668,6 @@ dependencies = [
  "schema-rust-next",
  "signal-frame",
  "thiserror",
- "version-projection",
 ]
 
 [[package]]
@@ -869,7 +866,7 @@ dependencies = [
 [[package]]
 name = "version-projection"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/version-projection.git?branch=main#e40fd1493236b4506260a9e53a15e7bbda96951d"
+source = "git+https://github.com/LiGoldragon/version-projection.git?branch=main#f00b239f75aca30098a60b30e877faafe8625d77"
 dependencies = [
  "nota-next",
  "rkyv",

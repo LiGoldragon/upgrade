@@ -63,8 +63,8 @@ impl MigrationModule {
         let result = (self.run)(attempt).map_err(|reason| rejection(attempt, reason))?;
         Ok(Completion {
             component: attempt.component.clone(),
-            source: attempt.source,
-            target: attempt.target,
+            source: attempt.source.clone(),
+            target: attempt.target.clone(),
             migration: self.supported.identifier.clone(),
             changed_records: result.changed_records,
         })
@@ -88,8 +88,8 @@ impl MigrationModule {
         let result = migrate_database(request)?;
         Ok(Completion {
             component: request.attempt.component.clone(),
-            source: request.attempt.source,
-            target: request.attempt.target,
+            source: request.attempt.source.clone(),
+            target: request.attempt.target.clone(),
             migration: self.supported.identifier.clone(),
             changed_records: result.changed_records,
         })
@@ -209,8 +209,8 @@ pub fn supported_migration(
 fn rejection(attempt: &Attempt, reason: RejectionReason) -> Rejection {
     Rejection {
         component: attempt.component.clone(),
-        source: attempt.source,
-        target: attempt.target,
+        source: attempt.source.clone(),
+        target: attempt.target.clone(),
         reason,
     }
 }

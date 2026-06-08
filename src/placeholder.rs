@@ -2,6 +2,7 @@ use meta_signal_upgrade::{
     Reply as OwnerReply, RequestUnimplemented as OwnerRequestUnimplemented,
     UnimplementedReason as OwnerUnimplementedReason,
 };
+#[cfg(feature = "nota-text")]
 use nota_next::NotaEncode;
 use signal_upgrade::{
     Reply as OrdinaryReply, RequestUnimplemented as OrdinaryRequestUnimplemented,
@@ -22,6 +23,7 @@ pub fn owner_placeholder_reply() -> OwnerReply {
     })
 }
 
+#[cfg(feature = "nota-text")]
 pub fn ordinary_placeholder_response<I, S>(arguments: I) -> Result<String, Error>
 where
     I: IntoIterator<Item = S>,
@@ -38,9 +40,12 @@ where
 {
     let invocation = Invocation::from_program_arguments(arguments)?;
     invocation.require_signal_file_argument()?;
-    Ok(encode_nota(&ordinary_placeholder_reply()))
+    Ok(String::from(
+        "upgrade-daemon accepted signal-encoded configuration",
+    ))
 }
 
+#[cfg(feature = "nota-text")]
 fn encode_nota(value: &impl NotaEncode) -> String {
     value.to_nota()
 }

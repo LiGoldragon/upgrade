@@ -33,7 +33,8 @@ pub use handover::{
     ReceivedHandoverRequest, SocketPath, Target, TargetInput, VersionLabel,
 };
 pub use invocation::{Argument, Invocation, InvocationKind};
+#[cfg(feature = "nota-text")]
+pub use placeholder::ordinary_placeholder_response;
 pub use placeholder::{
-    daemon_placeholder_response, ordinary_placeholder_reply, ordinary_placeholder_response,
-    owner_placeholder_reply,
+    daemon_placeholder_response, ordinary_placeholder_reply, owner_placeholder_reply,
 };

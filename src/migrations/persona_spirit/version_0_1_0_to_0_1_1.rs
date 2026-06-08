@@ -238,8 +238,8 @@ mod historical {
 mod current_shape {
     use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
     use sema_engine::{EngineRecord, RecordKey};
-    use signal_persona_spirit::migration::{V010ToV011, v010};
-    use signal_persona_spirit::{Date, Entry, RecordIdentifier, Time};
+    use signal_spirit::migration::{V010ToV011, v010};
+    use signal_spirit::{Date, Entry, RecordIdentifier, Time};
     use version_projection::VersionProjection;
 
     use super::historical;
@@ -323,8 +323,7 @@ mod current_shape {
 #[cfg(test)]
 mod tests {
     use sema_engine::{Assertion, Engine, EngineOpen, QueryPlan, TableDescriptor};
-    use signal_persona_spirit as current;
-    use signal_sema::Magnitude;
+    use signal_spirit as current;
     use tempfile::tempdir;
 
     use super::*;
@@ -342,9 +341,15 @@ mod tests {
         let records = read_current_records(&target);
         assert_eq!(records.len(), 3);
         assert_eq!(records[0].identifier.value(), 1);
-        assert_eq!(records[0].entry.entry.certainty, Magnitude::Maximum);
-        assert_eq!(records[1].entry.entry.certainty, Magnitude::Medium);
-        assert_eq!(records[2].entry.entry.certainty, Magnitude::Minimum);
+        assert_eq!(
+            records[0].entry.entry.certainty,
+            current::Magnitude::Maximum
+        );
+        assert_eq!(records[1].entry.entry.certainty, current::Magnitude::Medium);
+        assert_eq!(
+            records[2].entry.entry.certainty,
+            current::Magnitude::Minimum
+        );
         assert_eq!(
             records[0].entry.entry.topics.as_slice()[0].as_str(),
             "workspace"

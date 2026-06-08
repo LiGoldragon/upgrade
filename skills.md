@@ -30,5 +30,11 @@ Contract records stay in `signal-upgrade` and `meta-signal-upgrade`.
 - The CLI remains a daemon client when the daemon lands; it must not
   open durable state directly.
 - The daemon owns future durable state and bootstrap policy handling.
+- The daemon/default runtime graph stays binary-only: no `nota-next`,
+  no `nota-codec`, and no `signal-core` in normal dependencies.
+  `nota-text` is only for CLI/debug/audit projection.
+- Historical Spirit migration code imports current Spirit wire/storage
+  shapes from `signal-spirit`; `signal-persona-spirit` is the retired
+  crate name.
 - U4 is the first step that moves real migration and handover runtime
   code into this crate.

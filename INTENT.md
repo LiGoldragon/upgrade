@@ -36,15 +36,21 @@ Workspace-shape intent stays in `primary/INTENT.md`.
   are rejected rather than treated as request data.
 - **The runtime depends on the contracts; it does not duplicate them.**
   Wire records live in `signal-upgrade` and `meta-signal-upgrade`; the
-  runtime imports them.
+  runtime imports them. Historical Spirit data migrations import the
+  current Spirit contract from `signal-spirit`, not the retired
+  `signal-persona-spirit` crate name.
 - **Process lifecycle authority stays with Persona.** The upgrade daemon
   asks Persona to start next-version units rather than talking to
   systemd directly.
 - **Inter-component traffic is Signal; NOTA renders only at edges.**
-  Schema-derived planes carry the runtime; NOTA is the boundary form.
+  Schema-derived planes carry the runtime. NOTA is the CLI/debug/audit
+  text projection behind `nota-text`; the daemon default graph stays
+  binary/rkyv-only and does not pull `nota-next`.
 - **Skeleton honesty.** While skeletal, the binaries return typed
-  `RequestUnimplemented` replies rather than faking behaviour; the CLI
-  and daemon open no durable state until the runtime substance lands.
+  CLI `RequestUnimplemented` replies rather than faking behaviour; the
+  daemon validates its signal-encoded configuration argument and returns
+  only a scaffold acknowledgement. The CLI and daemon open no durable
+  state until the runtime substance lands.
 
 ## Anti-patterns
 

@@ -25,7 +25,7 @@ U1 is intentionally skeletal. The CLI enforces the component
 single-argument rule and returns typed `RequestUnimplemented` NOTA
 output. The daemon placeholder enforces the daemon side of the same
 rule by accepting only a signal-encoded rkyv configuration-file
-argument before returning its placeholder response. No `sema-upgrade`
+argument before returning a plain scaffold acknowledgement. No `sema-upgrade`
 migration modules, no Persona `HandoverDriver`, and no durable
 database code are present in U1.
 
@@ -41,8 +41,9 @@ database code are present in U1.
 - `src/invocation.rs` classifies the single argument as inline NOTA,
   a NOTA file path, or a signal-encoded rkyv file path. Daemon
   invocation rejects the NOTA forms.
-- `src/placeholder.rs` emits typed placeholder replies through the new
-  contracts.
+- `src/placeholder.rs` emits the CLI's typed placeholder reply through
+  the ordinary contract when `nota-text` is enabled; the daemon
+  placeholder performs only binary configuration argument validation.
 - `src/bin/upgrade.rs` is the thin CLI placeholder.
 - `src/bin/upgrade-daemon.rs` is the daemon placeholder.
 - `tests/generated_schema.rs` executes the generated runtime roots:
@@ -60,9 +61,14 @@ database code are present in U1.
   data.
 - The daemon accepts only a signal-encoded rkyv configuration-file
   argument. It does not decode inline NOTA or `.nota` files.
+- The default daemon/runtime dependency graph does not pull
+  `nota-next`, `nota-codec`, or `signal-core`; `nota-text` is an
+  explicit CLI/debug/audit projection feature.
 - The CLI and daemon do not open durable state in U1.
 - The runtime depends on `signal-upgrade` and
   `meta-signal-upgrade`; it does not duplicate their wire records.
+- Historical Spirit store migrations depend on `signal-spirit`, the
+  renamed ordinary Spirit contract, not on `signal-persona-spirit`.
 - U2 and U3 populate the contracts before U4 moves runtime substance.
 
 ## Status
@@ -70,8 +76,8 @@ database code are present in U1.
 Current-stack dependency refresh landed. The runtime carries checked-in
 schema-next/schema-rust-next artifacts, uses current signal-frame
 contracts for the ordinary and meta-policy sockets, routes durable
-database work through sema-engine, and has no signal-core or nota-codec
-dependency path. The generated module is executable through tests but
+database work through sema-engine, and has no signal-core, nota-codec,
+or default nota-next dependency path. The generated module is executable through tests but
 is not yet the daemon's load-bearing dispatch path; the binaries still
 return placeholder replies.
 

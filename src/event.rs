@@ -100,7 +100,7 @@ impl ActiveVersionChanged {
             active_version: VersionLabel::from(&order.target_version.label),
             schema_hash: contract_version_from_meta(&order.target_version.contract_version),
             source: ActiveVersionChangeSource::ForceFlip {
-                reason: order.reason.clone(),
+                reason: order.reason,
             },
         }
     }
@@ -111,7 +111,7 @@ impl ActiveVersionChanged {
             active_version: VersionLabel::from(&order.restore_version.label),
             schema_hash: contract_version_from_meta(&order.restore_version.contract_version),
             source: ActiveVersionChangeSource::Rollback {
-                reason: order.reason.clone(),
+                reason: order.reason,
             },
         }
     }
@@ -155,7 +155,7 @@ impl VersionQuarantined {
             component: order.component.clone(),
             version: VersionLabel::from(&order.version.label),
             schema_hash: contract_version_from_meta(&order.version.contract_version),
-            reason: order.reason.clone(),
+            reason: order.reason,
         }
     }
 
@@ -172,7 +172,7 @@ impl VersionQuarantined {
     }
 
     pub fn reason(&self) -> meta_signal_upgrade::QuarantineReason {
-        self.reason.clone()
+        self.reason
     }
 }
 

@@ -68,9 +68,9 @@ pub struct Target {
     component: ComponentName,
     current_version: VersionLabel,
     next_version: VersionLabel,
-    current_owner_socket_path: SocketPath,
+    current_meta_socket_path: SocketPath,
     current_upgrade_socket_path: SocketPath,
-    next_owner_socket_path: SocketPath,
+    next_meta_socket_path: SocketPath,
     next_upgrade_socket_path: SocketPath,
 }
 
@@ -80,9 +80,9 @@ impl Target {
             component: input.component,
             current_version: input.current_version,
             next_version: input.next_version,
-            current_owner_socket_path: input.current_owner_socket_path,
+            current_meta_socket_path: input.current_meta_socket_path,
             current_upgrade_socket_path: input.current_upgrade_socket_path,
-            next_owner_socket_path: input.next_owner_socket_path,
+            next_meta_socket_path: input.next_meta_socket_path,
             next_upgrade_socket_path: input.next_upgrade_socket_path,
         }
     }
@@ -99,16 +99,16 @@ impl Target {
         &self.next_version
     }
 
-    pub fn current_owner_socket_path(&self) -> &SocketPath {
-        &self.current_owner_socket_path
+    pub fn current_meta_socket_path(&self) -> &SocketPath {
+        &self.current_meta_socket_path
     }
 
     pub fn current_upgrade_socket_path(&self) -> &SocketPath {
         &self.current_upgrade_socket_path
     }
 
-    pub fn next_owner_socket_path(&self) -> &SocketPath {
-        &self.next_owner_socket_path
+    pub fn next_meta_socket_path(&self) -> &SocketPath {
+        &self.next_meta_socket_path
     }
 
     pub fn next_upgrade_socket_path(&self) -> &SocketPath {
@@ -131,9 +131,9 @@ pub struct TargetInput {
     pub component: ComponentName,
     pub current_version: VersionLabel,
     pub next_version: VersionLabel,
-    pub current_owner_socket_path: SocketPath,
+    pub current_meta_socket_path: SocketPath,
     pub current_upgrade_socket_path: SocketPath,
-    pub next_owner_socket_path: SocketPath,
+    pub next_meta_socket_path: SocketPath,
     pub next_upgrade_socket_path: SocketPath,
 }
 

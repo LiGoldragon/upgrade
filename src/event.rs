@@ -13,9 +13,9 @@ pub struct PreparedEvent {
     component: ComponentName,
     current_version: VersionLabel,
     next_version: VersionLabel,
-    current_owner_socket_path: SocketPath,
+    current_meta_socket_path: SocketPath,
     current_upgrade_socket_path: SocketPath,
-    next_owner_socket_path: SocketPath,
+    next_meta_socket_path: SocketPath,
     next_upgrade_socket_path: SocketPath,
 }
 
@@ -25,9 +25,9 @@ impl PreparedEvent {
             component: target.component().clone(),
             current_version: target.current_version().clone(),
             next_version: target.next_version().clone(),
-            current_owner_socket_path: target.current_owner_socket_path().clone(),
+            current_meta_socket_path: target.current_meta_socket_path().clone(),
             current_upgrade_socket_path: target.current_upgrade_socket_path().clone(),
-            next_owner_socket_path: target.next_owner_socket_path().clone(),
+            next_meta_socket_path: target.next_meta_socket_path().clone(),
             next_upgrade_socket_path: target.next_upgrade_socket_path().clone(),
         }
     }

@@ -25,9 +25,9 @@ fn target(current_socket: &std::path::Path, next_socket: &std::path::Path) -> Ta
         component: ComponentName::new("persona-spirit"),
         current_version: VersionLabel::new("v0.1.0"),
         next_version: VersionLabel::new("v0.1.1"),
-        current_owner_socket_path: SocketPath::new("/run/persona/spirit/v0.1.0/owner.sock"),
+        current_meta_socket_path: SocketPath::new("/run/persona/spirit/v0.1.0/meta.sock"),
         current_upgrade_socket_path: SocketPath::new(current_socket.to_string_lossy()),
-        next_owner_socket_path: SocketPath::new("/run/persona/spirit/v0.1.1/owner.sock"),
+        next_meta_socket_path: SocketPath::new("/run/persona/spirit/v0.1.1/meta.sock"),
         next_upgrade_socket_path: SocketPath::new(next_socket.to_string_lossy()),
     })
 }

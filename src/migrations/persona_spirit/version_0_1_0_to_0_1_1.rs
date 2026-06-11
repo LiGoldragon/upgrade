@@ -3,7 +3,7 @@ use std::path::Path;
 use sema_engine::{
     Assertion, Engine, EngineOpen, QueryPlan, SchemaVersion, TableDescriptor, TableName,
 };
-use signal_upgrade::{Attempt, RejectionReason, Version};
+use signal_upgrade::{Attempt, ComponentName, MigrationIdentifier, RejectionReason, Version};
 
 use crate::catalogue::{
     DatabaseMigration, DatabaseMigrationError, DatabaseMigrationResult, MigrationModule,
@@ -29,10 +29,10 @@ const RECORDS: TableName = TableName::new("records");
 pub fn module() -> MigrationModule {
     MigrationModule::new(
         supported_migration(
-            String::from(COMPONENT),
+            ComponentName::new(COMPONENT),
             SOURCE.clone(),
             TARGET.clone(),
-            String::from(IDENTIFIER),
+            MigrationIdentifier::new(IDENTIFIER),
         ),
         run,
     )
@@ -59,7 +59,7 @@ pub fn migrate_paths(source: &Path, target: &Path) -> DatabaseMigrationResult<Mo
 }
 
 fn run(attempt: &Attempt) -> Result<ModuleResult, RejectionReason> {
-    if attempt.component.as_str() != COMPONENT {
+    if attempt.component.payload() != COMPONENT {
         return Err(RejectionReason::ComponentMismatch);
     }
     Ok(ModuleResult::unchanged())

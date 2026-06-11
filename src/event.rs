@@ -1,5 +1,5 @@
 use meta_signal_upgrade::{ForceFlip, Quarantine, Rollback};
-use signal_upgrade::{ComponentName, ContractVersion, HandoverMarker};
+use signal_upgrade::{ComponentName, ContractVersion, HandoverMarker, RawByte, RawBytes};
 
 use crate::handover::{SocketPath, Target, VersionLabel};
 
@@ -96,7 +96,7 @@ impl ActiveVersionChanged {
 
     pub fn from_force_flip(order: &ForceFlip) -> Self {
         Self {
-            component: order.component.clone(),
+            component: component_name_from_meta(&order.component),
             active_version: VersionLabel::from(&order.target_version.label),
             schema_hash: contract_version_from_meta(&order.target_version.contract_version),
             source: ActiveVersionChangeSource::ForceFlip {
@@ -107,7 +107,7 @@ impl ActiveVersionChanged {
 
     pub fn from_rollback(order: &Rollback) -> Self {
         Self {
-            component: order.component.clone(),
+            component: component_name_from_meta(&order.component),
             active_version: VersionLabel::from(&order.restore_version.label),
             schema_hash: contract_version_from_meta(&order.restore_version.contract_version),
             source: ActiveVersionChangeSource::Rollback {
@@ -152,7 +152,7 @@ pub struct VersionQuarantined {
 impl VersionQuarantined {
     pub fn from_quarantine(order: &Quarantine) -> Self {
         Self {
-            component: order.component.clone(),
+            component: component_name_from_meta(&order.component),
             version: VersionLabel::from(&order.version.label),
             schema_hash: contract_version_from_meta(&order.version.contract_version),
             reason: order.reason,
@@ -230,5 +230,11 @@ impl ActiveVersion {
 }
 
 fn contract_version_from_meta(value: &meta_signal_upgrade::ContractVersion) -> ContractVersion {
-    ContractVersion::new(value.payload().clone())
+    ContractVersion::new(RawBytes::new(
+        value.payload().iter().copied().map(RawByte::new).collect(),
+    ))
+}
+
+fn component_name_from_meta(value: &meta_signal_upgrade::ComponentName) -> ComponentName {
+    ComponentName::new(value.payload().clone())
 }

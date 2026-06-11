@@ -44,7 +44,7 @@ fn run() -> Result<(), String> {
     })?;
 
     let attempt = Attempt {
-        component: ComponentName::from("persona-spirit"),
+        component: ComponentName::new("persona-spirit"),
         source: Version {
             major: 0,
             minor: 1,

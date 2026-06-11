@@ -14,24 +14,34 @@ pub type Path = std::string::String;
 pub use nota_next::{NotaDecode, NotaDecodeError, NotaEncode, NotaSource};
 
 #[rustfmt::skip]
-pub type ComponentName = String;
-
-#[rustfmt::skip]
-pub type MigrationIdentifier = String;
-
-#[rustfmt::skip]
-pub type RecordKind = String;
-
-#[rustfmt::skip]
-pub type RawByte = Integer;
-
-#[rustfmt::skip]
-pub type RawBytes = Vec<RawByte>;
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ComponentName(String);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ContractVersion(pub RawBytes);
+pub struct MigrationIdentifier(String);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct RecordKind(String);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct RawByte(Integer);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct RawBytes(Vec<RawByte>);
+
+#[rustfmt::skip]
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ContractVersion(RawBytes);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -80,7 +90,7 @@ pub enum ReportQuery {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct InspectionReported(pub Vec<SupportedMigration>);
+pub struct InspectionReported(Vec<SupportedMigration>);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -149,7 +159,7 @@ pub enum UnimplementedReason {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct RequestUnimplemented(pub UnimplementedReason);
+pub struct RequestUnimplemented(UnimplementedReason);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -185,7 +195,7 @@ pub struct HandoverMarker {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct MarkerRequest(pub ComponentName);
+pub struct MarkerRequest(ComponentName);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -237,12 +247,12 @@ pub struct RecoveryRequest {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct HandoverAcceptance(pub HandoverMarker);
+pub struct HandoverAcceptance(HandoverMarker);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct HandoverFinalization(pub HandoverMarker);
+pub struct HandoverFinalization(HandoverMarker);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -399,7 +409,7 @@ pub struct PolicyEntry {
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct PolicyReported(pub Vec<PolicyEntry>);
+pub struct PolicyReported(Vec<PolicyEntry>);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -430,7 +440,9 @@ pub struct PolicyRejected {
 }
 
 #[rustfmt::skip]
-pub type VersionLabel = String;
+#[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct VersionLabel(String);
 
 #[rustfmt::skip]
 #[cfg_attr(feature = "nota-text", derive(nota_next::NotaDecode, nota_next::NotaEncode))]
@@ -728,6 +740,101 @@ pub enum Output {
 }
 
 #[rustfmt::skip]
+impl ComponentName {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for ComponentName {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl MigrationIdentifier {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for MigrationIdentifier {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl RecordKind {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for RecordKind {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl RawByte {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Integer {
+        &self.0
+    }
+    pub fn into_payload(self) -> Integer {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Integer> for RawByte {
+    fn from(payload: Integer) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl RawBytes {
+    pub fn new(payload: Vec<RawByte>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<RawByte> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<RawByte> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<RawByte>> for RawBytes {
+    fn from(payload: Vec<RawByte>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl ContractVersion {
     pub fn new(payload: RawBytes) -> Self {
         Self(payload)
@@ -861,23 +968,42 @@ impl From<Vec<PolicyEntry>> for PolicyReported {
 }
 
 #[rustfmt::skip]
+impl VersionLabel {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
+    }
+    pub fn payload(&self) -> &String {
+        &self.0
+    }
+    pub fn into_payload(self) -> String {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<String> for VersionLabel {
+    fn from(payload: String) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl Inspection {
-    pub fn component(payload: ComponentName) -> Self {
-        Self::Component(payload)
+    pub fn component(payload: String) -> Self {
+        Self::Component(ComponentName::new(payload))
     }
 }
 
 #[rustfmt::skip]
 impl ReportQuery {
-    pub fn component(payload: ComponentName) -> Self {
-        Self::Component(payload)
+    pub fn component(payload: String) -> Self {
+        Self::Component(ComponentName::new(payload))
     }
 }
 
 #[rustfmt::skip]
 impl Query {
-    pub fn component(payload: ComponentName) -> Self {
-        Self::Component(payload)
+    pub fn component(payload: String) -> Self {
+        Self::Component(ComponentName::new(payload))
     }
 }
 
@@ -1185,6 +1311,27 @@ impl Output {
     }
     pub fn request_unimplemented(payload: UnimplementedReason) -> Self {
         Self::RequestUnimplemented(RequestUnimplemented::new(payload))
+    }
+}
+
+#[rustfmt::skip]
+impl From<ComponentName> for Inspection {
+    fn from(payload: ComponentName) -> Self {
+        Self::Component(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ComponentName> for ReportQuery {
+    fn from(payload: ComponentName) -> Self {
+        Self::Component(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl From<ComponentName> for Query {
+    fn from(payload: ComponentName) -> Self {
+        Self::Component(payload)
     }
 }
 
@@ -1813,6 +1960,61 @@ impl From<RequestUnimplemented> for Output {
 
 #[rustfmt::skip]
 #[cfg(feature = "nota-text")]
+impl ComponentName {
+    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
+        <Self as NotaDecode>::from_nota_block(block)
+    }
+    pub fn to_nota(&self) -> String {
+        <Self as NotaEncode>::to_nota(self)
+    }
+}
+
+#[rustfmt::skip]
+#[cfg(feature = "nota-text")]
+impl MigrationIdentifier {
+    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
+        <Self as NotaDecode>::from_nota_block(block)
+    }
+    pub fn to_nota(&self) -> String {
+        <Self as NotaEncode>::to_nota(self)
+    }
+}
+
+#[rustfmt::skip]
+#[cfg(feature = "nota-text")]
+impl RecordKind {
+    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
+        <Self as NotaDecode>::from_nota_block(block)
+    }
+    pub fn to_nota(&self) -> String {
+        <Self as NotaEncode>::to_nota(self)
+    }
+}
+
+#[rustfmt::skip]
+#[cfg(feature = "nota-text")]
+impl RawByte {
+    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
+        <Self as NotaDecode>::from_nota_block(block)
+    }
+    pub fn to_nota(&self) -> String {
+        <Self as NotaEncode>::to_nota(self)
+    }
+}
+
+#[rustfmt::skip]
+#[cfg(feature = "nota-text")]
+impl RawBytes {
+    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
+        <Self as NotaDecode>::from_nota_block(block)
+    }
+    pub fn to_nota(&self) -> String {
+        <Self as NotaEncode>::to_nota(self)
+    }
+}
+
+#[rustfmt::skip]
+#[cfg(feature = "nota-text")]
 impl ContractVersion {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
@@ -2243,6 +2445,17 @@ impl CatalogueRejectionReason {
 #[rustfmt::skip]
 #[cfg(feature = "nota-text")]
 impl PolicyRejected {
+    pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
+        <Self as NotaDecode>::from_nota_block(block)
+    }
+    pub fn to_nota(&self) -> String {
+        <Self as NotaEncode>::to_nota(self)
+    }
+}
+
+#[rustfmt::skip]
+#[cfg(feature = "nota-text")]
+impl VersionLabel {
     pub fn from_nota_block(block: &nota_next::Block) -> Result<Self, NotaDecodeError> {
         <Self as NotaDecode>::from_nota_block(block)
     }
@@ -3535,7 +3748,16 @@ impl TraceEvent {
     PartialEq,
     Eq,
 )]
-pub struct MessageIdentifier(pub Integer);
+pub struct MessageIdentifier(Integer);
+#[rustfmt::skip]
+impl MessageIdentifier {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> Integer {
+        self.0
+    }
+}
 #[rustfmt::skip]
 #[cfg(feature = "nota-text")]
 impl MessageIdentifier {
@@ -3559,7 +3781,16 @@ impl MessageIdentifier {
     PartialEq,
     Eq,
 )]
-pub struct OriginRoute(pub Integer);
+pub struct OriginRoute(Integer);
+#[rustfmt::skip]
+impl OriginRoute {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> Integer {
+        self.0
+    }
+}
 #[rustfmt::skip]
 #[cfg(feature = "nota-text")]
 impl OriginRoute {

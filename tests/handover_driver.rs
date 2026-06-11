@@ -4,13 +4,13 @@ use upgrade::{HandoverDriver, HandoverFrameCodec, SocketPath, Target, TargetInpu
 
 use signal_upgrade::{
     ComponentName, ContractVersion, Date, HandoverAcceptance, HandoverFinalization, HandoverMarker,
-    Input as HandoverOperation, Output as HandoverReply, Time,
+    Input as HandoverOperation, Output as HandoverReply, RawByte, RawBytes, Time,
 };
 
 fn marker(state_sequence: u64) -> HandoverMarker {
     HandoverMarker {
-        component: ComponentName::from("persona-spirit"),
-        schema_hash: ContractVersion::new(vec![1; 32]),
+        component: ComponentName::new("persona-spirit"),
+        schema_hash: ContractVersion::new(RawBytes::new(vec![RawByte::new(1); 32])),
         state_sequence,
         mirrored_write_count: 7,
         record_frontier: Some(44),
@@ -29,7 +29,7 @@ fn marker(state_sequence: u64) -> HandoverMarker {
 
 fn target(current_socket: &std::path::Path, next_socket: &std::path::Path) -> Target {
     Target::from_input(TargetInput {
-        component: ComponentName::from("persona-spirit"),
+        component: ComponentName::new("persona-spirit"),
         current_version: VersionLabel::new("v0.1.0"),
         next_version: VersionLabel::new("v0.1.1"),
         current_meta_socket_path: SocketPath::new("/run/persona/spirit/v0.1.0/meta.sock"),

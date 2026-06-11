@@ -40,7 +40,7 @@ impl VersionLabel {
 
 impl From<&meta_signal_upgrade::VersionLabel> for VersionLabel {
     fn from(value: &meta_signal_upgrade::VersionLabel) -> Self {
-        Self::new(value.clone())
+        Self::new(value.payload().clone())
     }
 }
 
@@ -477,8 +477,8 @@ impl HandoverDriver {
     fn ensure_next_marker_matches(source: &HandoverMarker, next: &HandoverMarker) -> Result<()> {
         Self::ensure_marker_field(
             "component",
-            source.component.as_str(),
-            next.component.as_str(),
+            source.component.payload(),
+            next.component.payload(),
         )?;
         Self::ensure_marker_field(
             "state_sequence",

@@ -24,7 +24,7 @@ impl SchemaBuild {
         GenerationDriver::new(GenerationPlan::component_runtime_compatibility(
             &self.crate_root,
             "upgrade",
-            "0.1.0",
+            "0.1.2",
         ))
         .generate()
         .expect("generate upgrade schema artifacts")

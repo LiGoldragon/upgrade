@@ -1,7 +1,8 @@
 use std::path::Path;
 
 use sema_engine::{
-    Assertion, Engine, EngineOpen, QueryPlan, SchemaVersion, TableDescriptor, TableName,
+    Assertion, Engine, EngineOpen, FamilyName, QueryPlan, SchemaHash, SchemaVersion,
+    TableDescriptor, TableName,
 };
 use signal_upgrade::{Attempt, ComponentName, MigrationIdentifier, RejectionReason, Version};
 
@@ -25,6 +26,10 @@ pub const TARGET: Version = Version {
 
 const SPIRIT_SCHEMA_VERSION: SchemaVersion = SchemaVersion::new(1);
 const RECORDS: TableName = TableName::new("records");
+const HISTORICAL_RECORDS_FAMILY: &str = "PersonaSpiritHistoricalRecordsFamily";
+const CURRENT_RECORDS_FAMILY: &str = "PersonaSpiritCurrentRecordsFamily";
+const HISTORICAL_RECORDS_SCHEMA_LABEL: &str = "persona-spirit-records-v0.1.0";
+const CURRENT_RECORDS_SCHEMA_LABEL: &str = "persona-spirit-records-v0.1.1";
 
 pub fn module() -> MigrationModule {
     MigrationModule::new(
@@ -75,7 +80,7 @@ fn read_historical_records(
     let mut engine = Engine::open(EngineOpen::new(source, SPIRIT_SCHEMA_VERSION))
         .map_err(|error| DatabaseMigrationError::Failed(error.to_string()))?;
     let table = engine
-        .register_table(TableDescriptor::<historical::StoredRecord>::new(RECORDS))
+        .register_table(SpiritRecordTables::new().historical_records_descriptor())
         .map_err(|error| DatabaseMigrationError::Failed(error.to_string()))?;
     let mut records = engine
         .match_records(QueryPlan::all(table))
@@ -93,7 +98,7 @@ fn write_current_records(
     let mut engine = Engine::open(EngineOpen::new(target, SPIRIT_SCHEMA_VERSION))
         .map_err(|error| DatabaseMigrationError::Failed(error.to_string()))?;
     let table = engine
-        .register_table(TableDescriptor::<current_shape::StoredRecord>::new(RECORDS))
+        .register_table(SpiritRecordTables::new().current_records_descriptor())
         .map_err(|error| DatabaseMigrationError::Failed(error.to_string()))?;
     let changed_records = records.len() as u64;
     for record in records {
@@ -105,6 +110,32 @@ fn write_current_records(
             .map_err(|error| DatabaseMigrationError::Failed(error.to_string()))?;
     }
     Ok(ModuleResult { changed_records })
+}
+
+struct SpiritRecordTables {
+    records: TableName,
+}
+
+impl SpiritRecordTables {
+    const fn new() -> Self {
+        Self { records: RECORDS }
+    }
+
+    fn historical_records_descriptor(&self) -> TableDescriptor<historical::StoredRecord> {
+        TableDescriptor::new(
+            self.records,
+            FamilyName::new(HISTORICAL_RECORDS_FAMILY),
+            SchemaHash::for_label(HISTORICAL_RECORDS_SCHEMA_LABEL),
+        )
+    }
+
+    fn current_records_descriptor(&self) -> TableDescriptor<current_shape::StoredRecord> {
+        TableDescriptor::new(
+            self.records,
+            FamilyName::new(CURRENT_RECORDS_FAMILY),
+            SchemaHash::for_label(CURRENT_RECORDS_SCHEMA_LABEL),
+        )
+    }
 }
 
 mod historical {
@@ -330,7 +361,7 @@ mod current_shape {
 
 #[cfg(test)]
 mod tests {
-    use sema_engine::{Assertion, Engine, EngineOpen, QueryPlan, TableDescriptor};
+    use sema_engine::{Assertion, Engine, EngineOpen, QueryPlan};
     use signal_spirit as current;
     use tempfile::tempdir;
 
@@ -396,7 +427,7 @@ mod tests {
     fn write_historical_fixture(path: &Path) {
         let mut engine = Engine::open(EngineOpen::new(path, SPIRIT_SCHEMA_VERSION)).expect("open");
         let table = engine
-            .register_table(TableDescriptor::<historical::StoredRecord>::new(RECORDS))
+            .register_table(SpiritRecordTables::new().historical_records_descriptor())
             .expect("register table");
         for record in historical_records() {
             engine
@@ -458,7 +489,7 @@ mod tests {
     fn read_current_records(path: &Path) -> Vec<current_shape::StoredRecord> {
         let mut engine = Engine::open(EngineOpen::new(path, SPIRIT_SCHEMA_VERSION)).expect("open");
         let table = engine
-            .register_table(TableDescriptor::<current_shape::StoredRecord>::new(RECORDS))
+            .register_table(SpiritRecordTables::new().current_records_descriptor())
             .expect("register table");
         engine
             .match_records(QueryPlan::all(table))

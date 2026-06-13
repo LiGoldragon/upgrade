@@ -370,7 +370,7 @@ checksum = "6b947ae49db0d222b1dbc6b113ce7248a3fc3a6ca21b696717bfc000ba4484d8"
 [[package]]
 name = "meta-signal-upgrade"
 version = "0.2.3"
-source = "git+https://github.com/LiGoldragon/meta-signal-upgrade.git?branch=main#1ddcd810f08f4e080177b59011aa210efe4fdbcf"
+source = "git+https://github.com/LiGoldragon/meta-signal-upgrade.git?branch=main#251274d151913d35d00d2a0f5f80c0f2b80a2db3"
 dependencies = [
  "nota-next",
  "rkyv",
@@ -591,7 +591,7 @@ dependencies = [
 [[package]]
 name = "schema-rust-next"
 version = "0.5.3"
-source = "git+https://github.com/LiGoldragon/schema-rust-next.git?branch=main#7c15bc3fa3d07f4710acca16f14eef1aa68b02dd"
+source = "git+https://github.com/LiGoldragon/schema-rust-next.git?branch=main#00763d676d63395d45b5f8a81dbf9a2287574ca9"
 dependencies = [
  "prettyplease",
  "proc-macro2",
@@ -614,7 +614,7 @@ dependencies = [
 [[package]]
 name = "sema-engine"
 version = "0.4.0"
-source = "git+https://github.com/LiGoldragon/sema-engine.git?branch=main#dbe29427d9a2c6c194909385485ad42b008048b8"
+source = "git+https://github.com/LiGoldragon/sema-engine.git?branch=main#909eaa0b9f3c902662fb6081c050ae3337e578c9"
 dependencies = [
  "blake3",
  "rkyv",
@@ -725,7 +725,7 @@ dependencies = [
 [[package]]
 name = "signal-upgrade"
 version = "0.2.3"
-source = "git+https://github.com/LiGoldragon/signal-upgrade.git?branch=main#5c6fdd74e22b0d71b9b5613a2a32a9b0b0a5c293"
+source = "git+https://github.com/LiGoldragon/signal-upgrade.git?branch=main#4c0caa4c8bb76f6e5faaffd657ce68b4dc34bd46"
 dependencies = [
  "nota-next",
  "rkyv",
@@ -877,7 +877,7 @@ dependencies = [
 [[package]]
 name = "triad-runtime"
 version = "0.6.1"
-source = "git+https://github.com/LiGoldragon/triad-runtime.git?branch=main#6ea831627d13793a4c42d7f9b9174b47279a9b2b"
+source = "git+https://github.com/LiGoldragon/triad-runtime.git?branch=main#1b5d0f17840793d00af73e8f16ad7908cad72a38"
 dependencies = [
  "kameo",
  "rustix",

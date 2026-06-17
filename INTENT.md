@@ -38,8 +38,9 @@ Workspace-shape intent stays in `primary/INTENT.md`.
   Wire records live in `signal-upgrade` and `meta-signal-upgrade`; the
   runtime imports their generated roots and projects them into its
   daemon-internal runtime schema. Historical Spirit data migrations
-  import the current Spirit contract from `signal-spirit`, not the
-  retired `signal-persona-spirit` crate name.
+  freeze their historical source and target record shapes inside the
+  migration module instead of depending on today's moving
+  `signal-spirit` contract.
 - **Process lifecycle authority stays with Persona.** The upgrade daemon
   asks Persona to start next-version units rather than talking to
   systemd directly.

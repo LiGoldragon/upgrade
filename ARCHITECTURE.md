@@ -68,8 +68,9 @@ database code are present in U1.
 - The runtime depends on `signal-upgrade` and
   `meta-signal-upgrade`; it does not carry parallel hand-written
   contract records.
-- Historical Spirit store migrations depend on `signal-spirit`, the
-  renamed ordinary Spirit contract, not on `signal-persona-spirit`.
+- Historical Spirit store migrations carry frozen source/target record
+  shapes inside the migration module. They do not depend on today's
+  moving `signal-spirit` contract for old table layouts.
 - U2 and U3 populate the contracts before U4 moves runtime substance.
 
 ## Status

@@ -277,11 +277,117 @@ mod historical {
 mod current_shape {
     use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
     use sema_engine::{EngineRecord, RecordKey};
-    use signal_spirit::migration::{V010ToV011, v010};
-    use signal_spirit::{Date, Entry, RecordIdentifier, Time};
-    use version_projection::VersionProjection;
 
     use super::historical;
+
+    #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+    pub struct RecordIdentifier(u64);
+
+    impl RecordIdentifier {
+        pub const fn new(value: u64) -> Self {
+            Self(value)
+        }
+
+        pub const fn value(self) -> u64 {
+            self.0
+        }
+    }
+
+    #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq, Hash)]
+    pub struct Topic(String);
+
+    impl Topic {
+        pub fn new(value: impl Into<String>) -> Self {
+            Self(value.into())
+        }
+
+        pub fn as_str(&self) -> &str {
+            &self.0
+        }
+    }
+
+    #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq, Hash)]
+    pub struct Summary(String);
+
+    impl Summary {
+        pub fn new(value: impl Into<String>) -> Self {
+            Self(value.into())
+        }
+    }
+
+    #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq, Hash)]
+    pub struct Quote(String);
+
+    impl Quote {
+        pub fn new(value: impl Into<String>) -> Self {
+            Self(value.into())
+        }
+    }
+
+    #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq, Hash)]
+    pub struct Context(String);
+
+    impl Context {
+        pub fn new(value: impl Into<String>) -> Self {
+            Self(value.into())
+        }
+    }
+
+    #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+    pub struct Date {
+        pub year: u16,
+        pub month: u8,
+        pub day: u8,
+    }
+
+    impl Date {
+        pub const fn new(year: u16, month: u8, day: u8) -> Self {
+            Self { year, month, day }
+        }
+    }
+
+    #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+    pub struct Time {
+        pub hour: u8,
+        pub minute: u8,
+        pub second: u8,
+    }
+
+    impl Time {
+        pub const fn new(hour: u8, minute: u8, second: u8) -> Self {
+            Self {
+                hour,
+                minute,
+                second,
+            }
+        }
+    }
+
+    #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+    pub enum Kind {
+        Decision,
+        Principle,
+        Correction,
+        Clarification,
+        Constraint,
+    }
+
+    #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+    pub enum Magnitude {
+        Maximum,
+        Medium,
+        Minimum,
+    }
+
+    #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
+    pub struct Entry {
+        pub topics: Vec<Topic>,
+        pub kind: Kind,
+        pub summary: Summary,
+        pub context: Context,
+        pub certainty: Magnitude,
+        pub quote: Quote,
+    }
 
     #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
     pub struct StampedEntry {
@@ -317,20 +423,18 @@ mod current_shape {
 
     impl From<historical::Entry> for Entry {
         fn from(entry: historical::Entry) -> Self {
-            let source = v010::Entry {
-                topic: v010::Topic::new(entry.topic.as_str()),
-                kind: v010::Kind::from(entry.kind),
-                summary: v010::Summary::new(entry.summary.as_str()),
-                context: v010::Context::new(entry.context.as_str()),
-                certainty: v010::Certainty::from(entry.certainty),
-                quote: v010::Quote::new(entry.quote.as_str()),
-            };
-            <V010ToV011 as VersionProjection<v010::Entry, Entry>>::project(source)
-                .expect("Spirit v0.1.0 entry projection to v0.1.1 is total")
+            Self {
+                topics: vec![Topic::new(entry.topic.as_str())],
+                kind: Kind::from(entry.kind),
+                summary: Summary::new(entry.summary.as_str()),
+                context: Context::new(entry.context.as_str()),
+                certainty: Magnitude::from(entry.certainty),
+                quote: Quote::new(entry.quote.as_str()),
+            }
         }
     }
 
-    impl From<historical::Kind> for v010::Kind {
+    impl From<historical::Kind> for Kind {
         fn from(kind: historical::Kind) -> Self {
             match kind {
                 historical::Kind::Decision => Self::Decision,
@@ -342,7 +446,7 @@ mod current_shape {
         }
     }
 
-    impl From<historical::Certainty> for v010::Certainty {
+    impl From<historical::Certainty> for Magnitude {
         fn from(certainty: historical::Certainty) -> Self {
             match certainty {
                 historical::Certainty::Maximum => Self::Maximum,
@@ -362,7 +466,6 @@ mod current_shape {
 #[cfg(test)]
 mod tests {
     use sema_engine::{Assertion, Engine, EngineOpen, QueryPlan};
-    use signal_spirit as current;
     use tempfile::tempdir;
 
     use super::*;
@@ -382,19 +485,22 @@ mod tests {
         assert_eq!(records[0].identifier.value(), 1);
         assert_eq!(
             records[0].entry.entry.certainty,
-            current::Magnitude::Maximum
+            current_shape::Magnitude::Maximum
         );
-        assert_eq!(records[1].entry.entry.certainty, current::Magnitude::Medium);
+        assert_eq!(
+            records[1].entry.entry.certainty,
+            current_shape::Magnitude::Medium
+        );
         assert_eq!(
             records[2].entry.entry.certainty,
-            current::Magnitude::Minimum
+            current_shape::Magnitude::Minimum
         );
         assert_eq!(
             records[0].entry.entry.topics.as_slice()[0].as_str(),
             "workspace"
         );
-        assert_eq!(records[0].entry.date, current::Date::new(2026, 5, 21));
-        assert_eq!(records[0].entry.time, current::Time::new(17, 30, 0));
+        assert_eq!(records[0].entry.date, current_shape::Date::new(2026, 5, 21));
+        assert_eq!(records[0].entry.time, current_shape::Time::new(17, 30, 0));
     }
 
     #[test]

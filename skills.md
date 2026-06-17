@@ -33,8 +33,8 @@ Contract records stay in `signal-upgrade` and `meta-signal-upgrade`.
 - The daemon/default runtime graph stays binary-only: no `nota-next`,
   no `nota-codec`, and no `signal-core` in normal dependencies.
   `nota-text` is only for CLI/debug/audit projection.
-- Historical Spirit migration code imports current Spirit wire/storage
-  shapes from `signal-spirit`; `signal-persona-spirit` is the retired
-  crate name.
+- Historical Spirit migration code owns frozen source/target
+  wire/storage shapes inside the migration module; it does not import
+  moving current Spirit record layouts.
 - U4 is the first step that moves real migration and handover runtime
   code into this crate.

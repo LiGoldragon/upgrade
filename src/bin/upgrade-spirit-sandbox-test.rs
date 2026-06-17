@@ -10,7 +10,6 @@ use sema_engine::{
     Engine, EngineOpen, EngineRecord, FamilyName, QueryPlan, RecordKey, SchemaHash, SchemaVersion,
     TableDescriptor, TableName,
 };
-use signal_spirit::{Date, Entry, RecordIdentifier, Time};
 use signal_upgrade::{Attempt, ComponentName, Version};
 use upgrade::{DatabaseMigration, MigrationCatalogue};
 
@@ -134,15 +133,76 @@ impl CurrentRecordTable {
 }
 
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
+struct CurrentTopic(String);
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
+struct CurrentSummary(String);
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
+struct CurrentQuote(String);
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
+struct CurrentContext(String);
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq)]
+enum CurrentKind {
+    Decision,
+    Principle,
+    Correction,
+    Clarification,
+    Constraint,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq)]
+enum CurrentMagnitude {
+    Maximum,
+    Medium,
+    Minimum,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
+struct CurrentEntry {
+    topics: Vec<CurrentTopic>,
+    kind: CurrentKind,
+    summary: CurrentSummary,
+    context: CurrentContext,
+    certainty: CurrentMagnitude,
+    quote: CurrentQuote,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq)]
+struct CurrentDate {
+    year: u16,
+    month: u8,
+    day: u8,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq)]
+struct CurrentTime {
+    hour: u8,
+    minute: u8,
+    second: u8,
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, Copy, PartialEq, Eq)]
+struct CurrentRecordIdentifier(u64);
+
+impl CurrentRecordIdentifier {
+    const fn value(self) -> u64 {
+        self.0
+    }
+}
+
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
 struct CurrentStampedEntry {
-    entry: Entry,
-    date: Date,
-    time: Time,
+    entry: CurrentEntry,
+    date: CurrentDate,
+    time: CurrentTime,
 }
 
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, Debug, Clone, PartialEq, Eq)]
 struct CurrentStoredRecord {
-    identifier: RecordIdentifier,
+    identifier: CurrentRecordIdentifier,
     entry: CurrentStampedEntry,
 }
 

@@ -19,15 +19,40 @@ Persona keeps process lifecycle authority. The future upgrade daemon
 asks Persona to start next-version units rather than talking to systemd
 directly.
 
-## U1 Shape
+## Present Shape
 
-U1 is intentionally skeletal. The CLI enforces the component
-single-argument rule and returns typed `RequestUnimplemented` NOTA
-output. The daemon placeholder enforces the daemon side of the same
-rule by accepting only a signal-encoded rkyv configuration-file
-argument before returning a plain scaffold acknowledgement. No `sema-upgrade`
-migration modules, no Persona `HandoverDriver`, and no durable
-database code are present in U1.
+`upgrade` is a real, building, tested runtime library with a placeholder
+daemon binary. The runtime substance is present and green:
+
+- `MigrationCatalogue` (`src/catalogue.rs`) holds the migration modules,
+  matches an `Attempt` by `(component, source, target)`, and runs both the
+  in-memory and the durable sema-store migration paths.
+- The Nexus/SEMA `Engine` (`src/execution.rs`) implements the generated
+  `NexusEngine` and `SemaEngine` traits and runs `Inspect`,
+  `AttemptUpgrade`, and `Report` through the generated Nexus runner.
+- The `HandoverDriver` (`src/handover.rs`) drives the current-side
+  handover protocol over `UnixStream` through a length-prefixed frame
+  codec, with a marker drift-guard (component / state_sequence /
+  mirrored_write_count / record_frontier) and a recovery fallback on
+  completion failure.
+- One proven field-migration module
+  (`src/migrations/persona_spirit/version_0_1_0_to_0_1_1.rs`) demonstrates
+  the layout-5 two-submodule pattern: a frozen `historical` shape, a
+  `current_shape` shape, and a `From`-chain between them, reading and
+  writing across two separate `.sema` stores via sema-engine.
+- Active-version-change and quarantine record types (`src/event.rs`) are
+  the rkyv event-log shapes the daemon will persist.
+
+The remaining placeholders are honest and named. The CLI returns typed
+`RequestUnimplemented` NOTA output. The daemon binary accepts only a
+signal-encoded rkyv configuration-file argument and returns a scaffold
+acknowledgement; it does not yet construct the `Engine`, open the
+ordinary/meta sockets, or run the dispatch loop. Not-yet-built meta-policy
+SEMA verbs (Register/Allow/Block/ForceFlip/Rollback/Quarantine and the
+handover write/read verbs) return typed `NotBuiltYet` replies. The
+remaining work is the daemon mount (see `## Runtime Substance Path`), the
+daemon's own durable policy/history/quarantine state, the per-component
+migration modules beyond `persona_spirit`, and the Persona handover wiring.
 
 ## Code Map
 
@@ -64,14 +89,17 @@ database code are present in U1.
 - The default daemon/runtime dependency graph does not pull
   `nota-next`, `nota-codec`, or `signal-core`; `nota-text` is an
   explicit CLI/debug/audit projection feature.
-- The CLI and daemon do not open durable state in U1.
+- The migration catalogue runs a durable sema-store migration path; the
+  daemon does not yet open durable state for its own policy, migration
+  history, active-version log, or quarantine list, and the CLI opens none.
 - The runtime depends on `signal-upgrade` and
   `meta-signal-upgrade`; it does not carry parallel hand-written
   contract records.
 - Historical Spirit store migrations carry frozen source/target record
   shapes inside the migration module. They do not depend on today's
   moving `signal-spirit` contract for old table layouts.
-- U2 and U3 populate the contracts before U4 moves runtime substance.
+- The contracts are schema-derived; the runtime imports their generated
+  roots and projects them, rather than carrying a parallel surface.
 
 ## Status
 

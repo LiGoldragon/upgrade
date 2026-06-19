@@ -48,11 +48,17 @@ Workspace-shape intent stays in `primary/INTENT.md`.
   Schema-derived planes carry the runtime. NOTA is the CLI/debug/audit
   text projection behind `nota-text`; the daemon default graph stays
   binary/rkyv-only and does not pull `nota-next`.
-- **Skeleton honesty.** While skeletal, the binaries return typed
-  CLI `RequestUnimplemented` replies rather than faking behaviour; the
-  daemon validates its signal-encoded configuration argument and returns
-  only a scaffold acknowledgement. The CLI and daemon open no durable
-  state until the runtime substance lands.
+- **Honest placeholder, real runtime.** The runtime substance is a real,
+  building, tested library: the migration catalogue, the Nexus/SEMA
+  execution engine, the handover driver, and a proven field-migration
+  module all run as green code. The remaining placeholders are honest and
+  named: the CLI returns typed `RequestUnimplemented` replies, the daemon
+  binary validates its signal-encoded configuration argument and returns a
+  scaffold acknowledgement without yet mounting the engine on a socket,
+  and not-yet-built SEMA verbs return typed `NotBuiltYet` replies rather
+  than faking behaviour. The daemon's own durable policy/history/quarantine
+  state is not yet opened, though the migration catalogue already runs its
+  durable sema-store path.
 - **Runtime execution uses generated Nexus/SEMA traits.** The migration
   catalogue engine implements the generated `NexusEngine` and
   `SemaEngine` traits from `src/schema/lib.rs`. The retired
@@ -72,8 +78,8 @@ Workspace-shape intent stays in `primary/INTENT.md`.
 
 ## See also
 
-- `ARCHITECTURE.md` - role, boundaries, the skeletal U1 shape, the
-  pending schema-engine upgrade, and code map.
+- `ARCHITECTURE.md` - role, boundaries, the present runtime-library
+  shape, the pending daemon mount, and code map.
 - `../signal-upgrade/INTENT.md` - ordinary migration-attempt contract.
 - `../meta-signal-upgrade/INTENT.md` - meta policy contract.
 - `primary/skills/component-triad.md` - triad structure and the

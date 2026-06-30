@@ -9,6 +9,17 @@ version event log, quarantine list, and handover orchestration.
 The ordinary contract lives in `signal-upgrade`; the meta policy
 contract lives in `meta-signal-upgrade`.
 
+`sema-upgrade` is the universal stateful schema-upgrade component for
+every sema database (the persona-component typed-record stores), not a
+spirit-only tool. It boots first, as engine-pre-zero infrastructure
+owned by the engine manager, ahead of any persona daemon. At boot it
+checks each daemon's stored schema-version-hash against the hash that
+daemon's code declares, and the SEMA interface owns the transitory
+dual-database concurrency that exists while a live transition is in
+flight. The first test case treats the legacy intent log as a `0.01`
+spirit database; the schema-spec-language eventually drives the
+transforms from declarative diffs.
+
 ## Boundaries
 
 This repo owns the `upgrade` library, the `upgrade` CLI, the
@@ -18,6 +29,18 @@ not own the contract record definitions.
 Persona keeps process lifecycle authority. The future upgrade daemon
 asks Persona to start next-version units rather than talking to systemd
 directly.
+
+## Migration as a Deployment Prerequisite
+
+Schema migration is a workspace-wide structural prerequisite for every
+deployed persona triad, not just spirit. A contract or storage-schema
+change requires the running daemon and its `redb` to migrate coherently.
+The deploy-restart-update flow means a daemon meeting an existing `redb`
+must either find no drift or have a `sema-upgrade` path; without one, any
+contract edit after first deploy breaks the next restart. This is why the
+upgrade leg exists before most triads have moved any data: it is the
+piece that lets a contract evolve at all once a daemon has written
+durable state.
 
 ## Present Shape
 
@@ -53,6 +76,37 @@ handover write/read verbs) return typed `NotBuiltYet` replies. The
 remaining work is the daemon mount (see `## Runtime Substance Path`), the
 daemon's own durable policy/history/quarantine state, the per-component
 migration modules beyond `persona_spirit`, and the Persona handover wiring.
+
+## Schema-Diff-Driven Upgrade Codegen
+
+The migration surface is derived from the schema diff between a
+`main`-`next` version pair, compile-time-optionally per pair. Unchanged
+types emit no upgrade code at all; changed types are the ones that need
+hand-written upgrade behavior. On database load the runtime runs the
+needed upgrades, and an old-version message is upgraded, accepted, and
+logged rather than rejected. Upgrade knowledge belongs to `next`: the
+`next` crate declares the `next` schema crate as a Cargo dependency so the
+generating macro sees both schemas in one place and emits the
+`VersionProjection`.
+
+Schema diffs can infer the standard migrations on their own, but
+ambiguous transforms still need explicit annotations or traits — the
+inferred path covers the unambiguous shape changes, and the author
+supplies the rest.
+
+The `VersionProjection` home crate is named `version-projection`, a peer
+of `signal-sema`. This keeps the projection vocabulary out of the daemon
+crate root: daemons should mostly carry component logic and the
+algorithms engines run, while repetitive startup, runner, and transport
+boilerplate lives behind libraries or macros. Generated internal
+Nexus-plane nouns are not casually promoted to the daemon crate root or
+the public contract surface; they belong in their plane schema or module,
+and future crate boundaries keep internal Nexus vocabulary separate from
+the wire-facing signal APIs.
+
+When an old-version message is upgraded and accepted, the runtime emits
+an observable event so introspection, routers, or agents can notify the
+source to upgrade its own client schema.
 
 ## Code Map
 
@@ -108,6 +162,49 @@ migration modules beyond `persona_spirit`, and the Persona handover wiring.
   runtime is built against the schema-derived stack from the start, with
   the macro library as the substrate rather than a later conversion of
   hand-written contracts.
+- Schema and upgrade work carries explicit provenance, so a migration's
+  origin is recoverable rather than implied.
+
+## Upgrade-Testing Pipeline
+
+A schema change that affects stored data is accepted only through an
+upgrade-testing pipeline rather than applied directly. The pipeline
+derives the new code, starts a newly compiled daemon, tests it against a
+minimal specified database first, and then tests it against a disposable
+copy of the live database before the schema change is accepted. The
+minimal-database pass catches the obvious shape errors cheaply; the
+live-copy pass exercises the migration against real data without
+endangering the running store.
+
+## Version-Divergence Recovery
+
+When the `next` version fails — catastrophically or with only partial
+support — `main` recovers the caller's intent. It reconstructs what it
+can from the original message through partial application and records the
+divergence, treating partial support the same as a flat
+cannot-do-at-all so that caller intent is preserved across a version
+divergence rather than silently degraded.
+
+Dual-version upgrade replies distinguish an old-database write failure
+from a new-database write failure, so a caller can tell which side of a
+live transition broke.
+
+## Upgrade Substrate
+
+The component upgrade substrate is Nix-flake versions, universal to every
+component. Each component's flake captures running-production (the last
+known-working `main`, pinned), the local in-development version, and named
+variants such as `unstable` and `testing` as flake inputs; every upgrade
+sequence is expressed in this flake-input-as-deployed-version structure,
+and a release tags the whole dependency surface it uses. Because tests run
+through Nix, the discipline is commit-first: uncommitted local state is
+invisible to the evaluator.
+
+The endgame is a workspace-owned content-addressed vertical stack. A
+workspace content-addressed store replaces Nix store-signing, composing
+Criome for authentication, `forge` for build (replacing Nix builders),
+and `sema-upgrade` for database migration, so every layer from build
+through authentication to distribution lives in the persona vocabulary.
 
 ## Status
 

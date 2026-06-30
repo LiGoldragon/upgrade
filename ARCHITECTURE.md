@@ -100,6 +100,14 @@ migration modules beyond `persona_spirit`, and the Persona handover wiring.
   moving `signal-spirit` contract for old table layouts.
 - The contracts are schema-derived; the runtime imports their generated
   roots and projects them, rather than carrying a parallel surface.
+- The runtime does not hand-roll the contract record definitions,
+  dispatcher, catalogue, or storage descriptors that the schema pipeline
+  emits. The upgrade triad orchestrates its own schema cutover as part of
+  the macro-library landing, given the self-reference between the
+  schema-language substrate and the runtime that owns migration: the U4
+  runtime is built against the schema-derived stack from the start, with
+  the macro library as the substrate rather than a later conversion of
+  hand-written contracts.
 
 ## Status
 

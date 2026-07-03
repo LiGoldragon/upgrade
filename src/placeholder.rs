@@ -3,7 +3,7 @@ use meta_signal_upgrade::{
     UnimplementedReason as OwnerUnimplementedReason,
 };
 #[cfg(feature = "nota-text")]
-use nota_next::NotaEncode;
+use nota::NotaEncode;
 use signal_upgrade::{
     Output as OrdinaryOutput, RequestUnimplemented as OrdinaryRequestUnimplemented,
     UnimplementedReason as OrdinaryUnimplementedReason,

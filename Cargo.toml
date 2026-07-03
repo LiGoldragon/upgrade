@@ -51,8 +51,8 @@ tempfile = "3"
 tokio    = { version = "1", features = ["macros", "rt"] }
 
 [build-dependencies]
-schema = { git = "https://github.com/LiGoldragon/schema.git", branch = "main" }
-schema-rust = { git = "https://github.com/LiGoldragon/schema-rust.git", branch = "main" }
+schema = { git = "https://github.com/LiGoldragon/schema.git", branch = "drop-next" }
+schema-rust = { git = "https://github.com/LiGoldragon/schema-rust.git", branch = "drop-next" }
 
 [lints.rust]
 unsafe_code = "forbid"

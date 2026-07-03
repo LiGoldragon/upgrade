@@ -36,14 +36,14 @@ nota-text = [
 
 [dependencies]
 nota              = { git = "https://github.com/LiGoldragon/nota.git", branch = "main", optional = true }
-meta-signal-upgrade   = { git = "https://github.com/LiGoldragon/meta-signal-upgrade.git", branch = "main", default-features = false }
+meta-signal-upgrade   = { git = "https://github.com/LiGoldragon/meta-signal-upgrade.git", branch = "drop-next", default-features = false }
 rkyv                   = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 sema-engine            = { git = "https://github.com/LiGoldragon/sema-engine.git", branch = "main", default-features = false }
-signal-frame           = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main", default-features = false }
-signal-upgrade         = { git = "https://github.com/LiGoldragon/signal-upgrade.git", branch = "main", default-features = false }
+signal-frame           = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "drop-next", default-features = false }
+signal-upgrade         = { git = "https://github.com/LiGoldragon/signal-upgrade.git", branch = "drop-next", default-features = false }
 thiserror              = "2"
 tokio                  = { version = "1", features = ["io-util", "net"] }
-triad-runtime          = { git = "https://github.com/LiGoldragon/triad-runtime.git", branch = "main" }
+triad-runtime          = { git = "https://github.com/LiGoldragon/triad-runtime.git", branch = "drop-next" }
 
 [dev-dependencies]
 nota = { git = "https://github.com/LiGoldragon/nota.git", branch = "main" }

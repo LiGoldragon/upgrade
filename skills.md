@@ -30,7 +30,7 @@ Contract records stay in `signal-upgrade` and `meta-signal-upgrade`.
 - The CLI remains a daemon client when the daemon lands; it must not
   open durable state directly.
 - The daemon owns future durable state and bootstrap policy handling.
-- The daemon/default runtime graph stays binary-only: no `nota-next`,
+- The daemon/default runtime graph stays binary-only: no `nota`,
   no `nota-codec`, and no `signal-core` in normal dependencies.
   `nota-text` is only for CLI/debug/audit projection.
 - Historical Spirit migration code owns frozen source/target

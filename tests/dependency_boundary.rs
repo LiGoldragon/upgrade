@@ -10,7 +10,7 @@ fn default_dependency_tree_does_not_pull_text_or_legacy_signal_crates() {
     assert!(output.status.success(), "status: {:?}", output.status);
     let tree = String::from_utf8(output.stdout).expect("dependency tree");
 
-    for forbidden_crate in ["nota-next", "nota-codec", "signal-core"] {
+    for forbidden_crate in ["nota", "nota-codec", "signal-core"] {
         assert!(
             !tree.contains(forbidden_crate),
             "default dependency tree must not contain {forbidden_crate}:\n{tree}"
@@ -36,8 +36,8 @@ fn nota_text_feature_is_the_only_text_projection_opt_in() {
     let tree = String::from_utf8(output.stdout).expect("dependency tree");
 
     assert!(
-        tree.contains("nota-next"),
-        "nota-text feature should opt into nota-next:\n{tree}"
+        tree.contains("nota"),
+        "nota-text feature should opt into nota:\n{tree}"
     );
     for forbidden_crate in ["nota-codec", "signal-core"] {
         assert!(

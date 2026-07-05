@@ -13,6 +13,7 @@ mod handover;
 mod invocation;
 mod migrations;
 mod placeholder;
+mod schema_diff;
 pub mod schema {
     #[rustfmt::skip]
     pub mod lib;
@@ -37,4 +38,9 @@ pub use invocation::{Argument, Invocation, InvocationKind};
 pub use placeholder::ordinary_placeholder_response;
 pub use placeholder::{
     daemon_placeholder_response, ordinary_placeholder_reply, owner_placeholder_reply,
+};
+pub use schema_diff::{
+    ChangeClassification, FamilyIdentity, FamilySchema, FamilySchemaHash, FieldIdentity,
+    FieldSchema, FieldType, KeyIdentity, SchemaChange, SchemaChangeKind, SchemaDifferenceReport,
+    SchemaFact, SemaSchemaSnapshot, StorageIdentity,
 };

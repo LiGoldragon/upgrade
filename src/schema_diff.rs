@@ -675,7 +675,7 @@ impl<'a> SchemaDifference<'a> {
                         family: report_family.clone(),
                         field: field.clone(),
                     },
-                    ChangeClassification::AutoSafe,
+                    ChangeClassification::NeedsExplicitUpgradeRule,
                     [SchemaFact::FieldPresentOnlyInNew],
                 ));
             }

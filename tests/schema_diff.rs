@@ -110,7 +110,10 @@ fn schema_difference_report_is_deterministic_and_classified() {
     assert!(stable_text.contains(
         "likely-renamed-family old=OldSession new=CurrentSession | needs explicit upgrade rule"
     ));
-    assert!(stable_text.contains("added-field family=Account field=created_at | auto-safe"));
+    assert!(
+        stable_text
+            .contains("added-field family=Account field=created_at | needs explicit upgrade rule")
+    );
     assert!(
         stable_text.contains(
             "removed-field family=Account field=legacy_note | needs explicit upgrade rule"

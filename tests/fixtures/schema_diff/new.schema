@@ -1,0 +1,6 @@
+[]
+[]
+{
+  Account { identifier.String name.String quota.String state.String created_at.Integer }
+  AccountFamily (Family { record.Account table.accounts key.Identified })
+}

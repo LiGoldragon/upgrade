@@ -1,0 +1,6 @@
+[]
+[]
+{
+  Account { identifier.String display_name.String quota.Integer legacy_note.String state.String }
+  AccountFamily (Family { record.Account table.accounts key.Identified })
+}

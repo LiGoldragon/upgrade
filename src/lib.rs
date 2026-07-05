@@ -5,6 +5,8 @@
 //! signal vocabularies live in `signal-upgrade` and
 //! `meta-signal-upgrade`.
 
+#[cfg(feature = "authored-schema")]
+mod authored_schema;
 mod catalogue;
 mod error;
 mod event;
@@ -19,6 +21,11 @@ pub mod schema {
     pub mod lib;
 }
 
+#[cfg(feature = "authored-schema")]
+pub use authored_schema::{
+    AuthoredRecordDeclarationKind, AuthoredSchemaError, AuthoredSchemaIdentity,
+    AuthoredSchemaMissingFact, AuthoredSchemaSnapshot,
+};
 pub use catalogue::{
     DatabaseMigration, DatabaseMigrationError, DatabaseMigrationResult, MigrationCatalogue,
     MigrationModule, ModuleResult,

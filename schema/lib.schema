@@ -41,60 +41,71 @@
   MigrationIdentifier String
   RecordKind String
   RawByte Integer
-  RawBytes (Vec RawByte)
-  ContractVersion { byte RawBytes }
-  Version { major Integer minor Integer patch Integer }
-  SupportedMigration { component ComponentName source Version target Version identifier MigrationIdentifier }
+  RawBytes (Vector RawByte)
+  ChangedRecords Integer
+  StateSequence Integer
+  MirroredWriteCount Integer
+  RecordFrontier (Optional Integer)
+  FailureIdentifier Integer
+  DivergenceIdentifier Integer
+  Recovered Boolean
+  SupportedMigrations (Vector SupportedMigration)
+  Completions (Vector Completion)
+  Rejections (Vector Rejection)
+  ContractVersion { RawBytes }
+  Version { major.Integer minor.Integer patch.Integer }
+  SupportedMigration { ComponentName source.Version target.Version MigrationIdentifier }
   Inspection [All (Component ComponentName)]
-  Attempt { component ComponentName source Version target Version }
+  Attempt { ComponentName source.Version target.Version }
   ReportQuery [All (Component ComponentName)]
-  InspectionReported { migrations (Vec SupportedMigration) }
-  Completion { component ComponentName source Version target Version migration MigrationIdentifier changed_records Integer }
+  InspectionReported { SupportedMigrations }
+  Completion { ComponentName source.Version target.Version MigrationIdentifier ChangedRecords }
   RejectionReason [UnsupportedMigration ComponentMismatch MigrationFailed]
-  Rejection { component ComponentName source Version target Version reason RejectionReason }
-  Reported { completions (Vec Completion) rejections (Vec Rejection) }
+  Rejection { ComponentName source.Version target.Version RejectionReason }
+  Reported { Completions Rejections }
   UnimplementedReason [NotBuiltYet IntegrationNotLanded]
-  RequestUnimplemented { reason UnimplementedReason }
-  Date { year Integer month Integer day Integer }
-  Time { hour Integer minute Integer second Integer }
-  HandoverMarker { component ComponentName schema_hash ContractVersion state_sequence Integer mirrored_write_count Integer record_frontier (Optional Integer) recorded_at_date Date recorded_at_time Time }
-  MarkerRequest { component ComponentName }
-  ReadinessReport { component ComponentName source_marker HandoverMarker }
-  CompletionReport { component ComponentName accepted_marker HandoverMarker }
-  MirrorPayload { component ComponentName source_version ContractVersion target_version ContractVersion kind RecordKind payload RawBytes }
-  DivergencePayload { component ComponentName source_version ContractVersion target_version ContractVersion reason DivergenceReason kind RecordKind payload RawBytes }
-  RecoveryRequest { component ComponentName failure_identifier Integer }
-  HandoverAcceptance { accepted_marker HandoverMarker }
-  HandoverFinalization { finalized_marker HandoverMarker }
-  MirrorAcknowledgement { component ComponentName mirrored_write_count Integer }
-  DivergenceAcknowledgement { component ComponentName divergence_identifier Integer }
-  RecoveryResult { component ComponentName recovered Boolean }
-  HandoverRejection { component ComponentName reason HandoverRejectionReason }
+  RequestUnimplemented { UnimplementedReason }
+  Date { year.Integer month.Integer day.Integer }
+  Time { hour.Integer minute.Integer second.Integer }
+  HandoverMarker { ComponentName ContractVersion StateSequence MirroredWriteCount RecordFrontier Date Time }
+  MarkerRequest { ComponentName }
+  ReadinessReport { ComponentName HandoverMarker }
+  CompletionReport { ComponentName HandoverMarker }
+  MirrorPayload { ComponentName source_version.ContractVersion target_version.ContractVersion RecordKind RawBytes }
+  DivergencePayload { ComponentName source_version.ContractVersion target_version.ContractVersion DivergenceReason RecordKind RawBytes }
+  RecoveryRequest { ComponentName FailureIdentifier }
+  HandoverAcceptance { HandoverMarker }
+  HandoverFinalization { HandoverMarker }
+  MirrorAcknowledgement { ComponentName MirroredWriteCount }
+  DivergenceAcknowledgement { ComponentName DivergenceIdentifier }
+  RecoveryResult { ComponentName Recovered }
+  HandoverRejection { ComponentName HandoverRejectionReason }
   HandoverRejectionReason [SchemaMismatch StateSequenceAdvanced AlreadyInHandover NotReady]
   DivergenceReason [NotRepresentable TargetUnavailable TargetRejected]
+  MigrationVersion { major.Integer minor.Integer patch.Integer }
   MigrationState [Enabled Disabled]
-  Registration { component ComponentName source Version target Version migration MigrationIdentifier state MigrationState }
-  PolicyRange { component ComponentName source Version target Version }
+  Registration { ComponentName source.MigrationVersion target.MigrationVersion MigrationIdentifier MigrationState }
+  PolicyRange { ComponentName source.MigrationVersion target.MigrationVersion }
   BlockReason [Unsafe Superseded NotReviewed]
-  Block { component ComponentName source Version target Version reason BlockReason }
+  Block { ComponentName source.MigrationVersion target.MigrationVersion BlockReason }
   Query [All (Component ComponentName)]
-  PolicyEntry { component ComponentName source Version target Version state MigrationState }
-  PolicyReported { entries (Vec PolicyEntry) }
+  PolicyEntry { ComponentName source.MigrationVersion target.MigrationVersion MigrationState }
+  PolicyReported (Vector PolicyEntry)
   CatalogueRejectionReason [UnknownMigration AlreadyRegistered NotAllowed]
-  PolicyRejected { component ComponentName source Version target Version reason CatalogueRejectionReason }
+  PolicyRejected { ComponentName source.MigrationVersion target.MigrationVersion CatalogueRejectionReason }
   VersionLabel String
-  SelectorVersion { label VersionLabel contract_version ContractVersion }
+  SelectorVersion { VersionLabel ContractVersion }
   ForceReason [OperatorOverride MarkerMismatchAccepted EmergencyRecovery]
   RollbackReason [PostCutoverFailure OperatorOverride RecoveryDrill]
   QuarantineReason [FailedUpgrade SuspectState OperatorHold]
-  ForceFlip { component ComponentName current_version SelectorVersion target_version SelectorVersion reason ForceReason }
-  Rollback { component ComponentName active_version SelectorVersion restore_version SelectorVersion reason RollbackReason }
-  Quarantine { component ComponentName version SelectorVersion reason QuarantineReason }
-  ForcedFlip { component ComponentName active_version SelectorVersion }
-  RolledBack { component ComponentName active_version SelectorVersion }
-  Quarantined { component ComponentName version SelectorVersion }
+  ForceFlip { ComponentName current.SelectorVersion target.SelectorVersion ForceReason }
+  Rollback { ComponentName active.SelectorVersion restore.SelectorVersion RollbackReason }
+  Quarantine { ComponentName SelectorVersion QuarantineReason }
+  ForcedFlip { ComponentName SelectorVersion }
+  RolledBack { ComponentName SelectorVersion }
+  Quarantined { ComponentName SelectorVersion }
   SelectorRejectionReason [UnknownComponent UnknownVersion NotAllowed AlreadyQuarantined NotQuarantined VersionQuarantined HandoverRejected UpgradeSocketUnavailable]
-  Rejected { component ComponentName reason SelectorRejectionReason }
+  Rejected { ComponentName SelectorRejectionReason }
   NexusWork [(SignalArrived Input) (SemaWriteCompleted SemaWriteOutput) (SemaReadCompleted SemaReadOutput) (EffectCompleted NexusEffectResult)]
   NexusAction [(CommandSemaWrite SemaWriteInput) (CommandSemaRead SemaReadInput) (ReplyToSignal Output) (CommandEffect NexusEffectCommand) (Continue NexusWork)]
   NexusEffectCommand [(CallHandoverPeer MirrorPayload) (NotifySelector ForceFlip)]

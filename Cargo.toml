@@ -28,31 +28,31 @@ path = "src/bin/upgrade-spirit-sandbox-test.rs"
 [features]
 default = []
 nota-text = [
-    "dep:nota-next",
+    "dep:nota",
     "meta-signal-upgrade/nota-text",
     "signal-frame/nota-text",
     "signal-upgrade/nota-text",
 ]
 
 [dependencies]
-nota-next              = { git = "https://github.com/LiGoldragon/nota-next.git", branch = "main", optional = true }
-meta-signal-upgrade   = { git = "https://github.com/LiGoldragon/meta-signal-upgrade.git", branch = "main", default-features = false }
+nota                   = { git = "https://github.com/LiGoldragon/nota.git", branch = "main", optional = true }
+meta-signal-upgrade   = { git = "https://github.com/LiGoldragon/meta-signal-upgrade.git", rev = "056552efac7aa14c10295562942c7075e9222973", default-features = false }
 rkyv                   = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 sema-engine            = { git = "https://github.com/LiGoldragon/sema-engine.git", branch = "main", default-features = false }
 signal-frame           = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main", default-features = false }
-signal-upgrade         = { git = "https://github.com/LiGoldragon/signal-upgrade.git", branch = "main", default-features = false }
+signal-upgrade         = { git = "https://github.com/LiGoldragon/signal-upgrade.git", rev = "4a5719fff9a11ff95bfdbb719784d5dce0ad108a", default-features = false }
 thiserror              = "2"
 tokio                  = { version = "1", features = ["io-util", "net"] }
 triad-runtime          = { git = "https://github.com/LiGoldragon/triad-runtime.git", branch = "main" }
 
 [dev-dependencies]
-nota-next = { git = "https://github.com/LiGoldragon/nota-next.git", branch = "main" }
+nota     = { git = "https://github.com/LiGoldragon/nota.git", branch = "main" }
 tempfile = "3"
 tokio    = { version = "1", features = ["macros", "rt"] }
 
 [build-dependencies]
-schema-next = { git = "https://github.com/LiGoldragon/schema-next.git", branch = "main" }
-schema-rust-next = { git = "https://github.com/LiGoldragon/schema-rust-next.git", branch = "main" }
+schema = { git = "https://github.com/LiGoldragon/schema.git", rev = "4a8aaf1de3aaf476577d5b4e93691ef47c135d1a" }
+schema-rust = { git = "https://github.com/LiGoldragon/schema-rust.git", rev = "886a9009077bdf9ee0e71fa0fa31aaf6e5444dd3" }
 
 [lints.rust]
 unsafe_code = "forbid"

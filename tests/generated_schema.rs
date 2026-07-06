@@ -1,8 +1,9 @@
 use upgrade::schema::lib::{
     Attempt, Block, BlockReason, Completion, ComponentName, ContractVersion, ForceFlip,
-    ForceReason, Input, InputRoute, NexusAction, NexusActionRoute, NexusWork, ObjectName,
-    OriginRoute, Output, OutputRoute, RawByte, RawBytes, SelectorVersion, SemaWriteInput,
-    SemaWriteInputRoute, SemaWriteOutput, SignalObjectName, TraceEvent, Version, VersionLabel,
+    ForceReason, Input, InputRoute, MigrationVersion, NexusAction, NexusActionRoute, NexusWork,
+    ObjectName, OriginRoute, Output, OutputRoute, RawByte, RawBytes, SelectorVersion,
+    SemaWriteInput, SemaWriteInputRoute, SemaWriteOutput, SignalObjectName, TraceEvent, Version,
+    VersionLabel,
 };
 
 fn version(major: u64, minor: u64, patch: u64) -> Version {
@@ -13,20 +14,28 @@ fn version(major: u64, minor: u64, patch: u64) -> Version {
     }
 }
 
+fn migration_version(major: u64, minor: u64, patch: u64) -> MigrationVersion {
+    MigrationVersion {
+        major,
+        minor,
+        patch,
+    }
+}
+
 fn contract_version(byte: u64) -> ContractVersion {
     ContractVersion::new(RawBytes::new(vec![RawByte::new(byte); 32]))
 }
 
-fn selector_version(label: &str, byte: u64) -> SelectorVersion {
+fn selector_version(version_label: &str, byte: u64) -> SelectorVersion {
     SelectorVersion {
-        label: VersionLabel::new(label),
+        version_label: VersionLabel::new(version_label),
         contract_version: contract_version(byte),
     }
 }
 
 fn attempt() -> Attempt {
     Attempt {
-        component: ComponentName::new("persona-spirit"),
+        component_name: ComponentName::new("persona-spirit"),
         source: version(0, 1, 0),
         target: version(0, 1, 1),
     }
@@ -34,20 +43,20 @@ fn attempt() -> Attempt {
 
 fn completion() -> Completion {
     Completion {
-        component: ComponentName::new("persona-spirit"),
+        component_name: ComponentName::new("persona-spirit"),
         source: version(0, 1, 0),
         target: version(0, 1, 1),
-        migration: "persona-spirit-0-1-0-to-0-1-1".to_owned().into(),
-        changed_records: 3,
+        migration_identifier: "persona-spirit-0-1-0-to-0-1-1".to_owned().into(),
+        changed_records: 3.into(),
     }
 }
 
 fn force_flip() -> ForceFlip {
     ForceFlip {
-        component: ComponentName::new("persona-spirit"),
-        current_version: selector_version("v0.1.0", 1),
-        target_version: selector_version("v0.1.1", 2),
-        reason: ForceReason::OperatorOverride,
+        component_name: ComponentName::new("persona-spirit"),
+        current: selector_version("v0.1.0", 1),
+        target: selector_version("v0.1.1", 2),
+        force_reason: ForceReason::OperatorOverride,
     }
 }
 
@@ -74,7 +83,7 @@ fn generated_runtime_signal_nexus_sema_projection_routes_attempt_upgrade() {
     assert_eq!(action.root().route(), NexusActionRoute::CommandSemaWrite);
     match action.root() {
         NexusAction::CommandSemaWrite(SemaWriteInput::AttemptUpgrade(payload)) => {
-            assert_eq!(payload.component.payload(), "persona-spirit");
+            assert_eq!(payload.component_name.payload(), "persona-spirit");
         }
         other => panic!("expected AttemptUpgrade SEMA write, got {other:?}"),
     }
@@ -96,7 +105,7 @@ fn generated_runtime_owner_operation_projects_to_sema_write() {
     assert_eq!(action.origin_route(), OriginRoute::new(19));
     match action.root() {
         NexusAction::CommandSemaWrite(SemaWriteInput::ForceFlip(payload)) => {
-            assert_eq!(payload.reason, ForceReason::OperatorOverride);
+            assert_eq!(payload.force_reason, ForceReason::OperatorOverride);
         }
         other => panic!("expected ForceFlip SEMA write, got {other:?}"),
     }
@@ -114,7 +123,7 @@ fn generated_runtime_sema_completion_projects_back_to_signal_output() {
     assert_eq!(output.root().route(), OutputRoute::UpgradeCompleted);
     match output.into_root() {
         Output::UpgradeCompleted(completion) => {
-            assert_eq!(completion.changed_records, 3);
+            assert_eq!(completion.changed_records, 3.into());
         }
         other => panic!("expected UpgradeCompleted output, got {other:?}"),
     }
@@ -123,10 +132,10 @@ fn generated_runtime_sema_completion_projects_back_to_signal_output() {
 #[test]
 fn generated_runtime_owner_reply_projects_back_to_signal_output() {
     let output = SemaWriteOutput::blocked(Block {
-        component: ComponentName::new("persona-spirit"),
-        source: version(0, 1, 0),
-        target: version(0, 1, 2),
-        reason: BlockReason::Unsafe,
+        component_name: ComponentName::new("persona-spirit"),
+        source: migration_version(0, 1, 0),
+        target: migration_version(0, 1, 2),
+        block_reason: BlockReason::Unsafe,
     })
     .with_origin_route(OriginRoute::new(31))
     .into_nexus_work()

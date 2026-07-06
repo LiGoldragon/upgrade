@@ -446,16 +446,16 @@ impl HandoverDriver {
         let acceptance = self
             .current
             .ready_to_handover(ReadinessReport {
-                component: component.clone(),
-                source_marker: marker.clone(),
+                component_name: component.clone(),
+                handover_marker: marker.clone(),
             })
             .await?;
         let accepted_marker = acceptance_marker(&acceptance).clone();
         let finalization = match self
             .current
             .complete_handover(CompletionReport {
-                component: component.clone(),
-                accepted_marker: accepted_marker.clone(),
+                component_name: component.clone(),
+                handover_marker: accepted_marker.clone(),
             })
             .await
         {
@@ -464,8 +464,8 @@ impl HandoverDriver {
                 let _ = self
                     .current
                     .recover_from_failure(RecoveryRequest {
-                        component,
-                        failure_identifier: accepted_marker.state_sequence,
+                        component_name: component,
+                        failure_identifier: accepted_marker.state_sequence.into_payload().into(),
                     })
                     .await;
                 return Err(error);
@@ -477,18 +477,18 @@ impl HandoverDriver {
     fn ensure_next_marker_matches(source: &HandoverMarker, next: &HandoverMarker) -> Result<()> {
         Self::ensure_marker_field(
             "component",
-            source.component.payload(),
-            next.component.payload(),
+            source.component_name.payload(),
+            next.component_name.payload(),
         )?;
         Self::ensure_marker_field(
             "state_sequence",
-            source.state_sequence.to_string(),
-            next.state_sequence.to_string(),
+            source.state_sequence.payload().to_string(),
+            next.state_sequence.payload().to_string(),
         )?;
         Self::ensure_marker_field(
             "mirrored_write_count",
-            source.mirrored_write_count.to_string(),
-            next.mirrored_write_count.to_string(),
+            source.mirrored_write_count.payload().to_string(),
+            next.mirrored_write_count.payload().to_string(),
         )?;
         Self::ensure_marker_field(
             "record_frontier",

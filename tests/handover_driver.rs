@@ -9,17 +9,17 @@ use signal_upgrade::{
 
 fn marker(state_sequence: u64) -> HandoverMarker {
     HandoverMarker {
-        component: ComponentName::new("persona-spirit"),
-        schema_hash: ContractVersion::new(RawBytes::new(vec![RawByte::new(1); 32])),
-        state_sequence,
-        mirrored_write_count: 7,
-        record_frontier: Some(44),
-        recorded_at_date: Date {
+        component_name: ComponentName::new("persona-spirit"),
+        contract_version: ContractVersion::new(RawBytes::new(vec![RawByte::new(1); 32])),
+        state_sequence: state_sequence.into(),
+        mirrored_write_count: 7.into(),
+        record_frontier: Some(44).into(),
+        date: Date {
             year: 2026,
             month: 5,
             day: 24,
         },
-        recorded_at_time: Time {
+        time: Time {
             hour: 12,
             minute: 0,
             second: 0,
@@ -120,10 +120,10 @@ async fn serve_endpoint(
                 HandoverReply::HandoverMarker(marker.clone())
             }
             HandoverOperation::ReadyToHandover(report) => {
-                HandoverReply::HandoverAccepted(HandoverAcceptance::new(report.source_marker))
+                HandoverReply::HandoverAccepted(HandoverAcceptance::new(report.handover_marker))
             }
             HandoverOperation::HandoverCompleted(report) => {
-                HandoverReply::HandoverFinalized(HandoverFinalization::new(report.accepted_marker))
+                HandoverReply::HandoverFinalized(HandoverFinalization::new(report.handover_marker))
             }
             other => panic!("unexpected operation {other:?}"),
         };

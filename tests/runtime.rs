@@ -7,7 +7,7 @@ use upgrade::{Engine, MigrationCatalogue};
 
 fn attempt(source: Version, target: Version) -> Attempt {
     Attempt {
-        component: ComponentName::new("persona-spirit"),
+        component_name: ComponentName::new("persona-spirit"),
         source,
         target,
     }
@@ -35,11 +35,11 @@ fn module_index_names_persona_spirit_version_upgrade() {
     let migrations = index.supported_migrations();
 
     assert_eq!(migrations.len(), 1);
-    assert_eq!(migrations[0].component.payload(), "persona-spirit");
+    assert_eq!(migrations[0].component_name.payload(), "persona-spirit");
     assert_eq!(migrations[0].source, version(0, 1, 0));
     assert_eq!(migrations[0].target, version(0, 1, 1));
     assert_eq!(
-        migrations[0].identifier.payload(),
+        migrations[0].migration_identifier.payload(),
         "persona-spirit-0-1-0-to-0-1-1"
     );
 }
@@ -63,10 +63,10 @@ async fn supported_upgrade_runs_through_generated_nexus_runner() {
     let Output::UpgradeCompleted(completion) = first_reply(reply) else {
         panic!("expected UpgradeCompleted");
     };
-    assert_eq!(completion.component.payload(), "persona-spirit");
+    assert_eq!(completion.component_name.payload(), "persona-spirit");
     assert_eq!(completion.source, version(0, 1, 0));
     assert_eq!(completion.target, version(0, 1, 1));
-    assert_eq!(completion.changed_records, 0);
+    assert_eq!(completion.changed_records, 0.into());
 }
 
 #[tokio::test]
@@ -80,9 +80,12 @@ async fn unsupported_upgrade_rejects_as_typed_contract_reply() {
     let Output::UpgradeRejected(rejection) = first_reply(reply) else {
         panic!("expected UpgradeRejected");
     };
-    assert_eq!(rejection.component.payload(), "persona-spirit");
+    assert_eq!(rejection.component_name.payload(), "persona-spirit");
     assert_eq!(rejection.target, version(0, 1, 2));
-    assert_eq!(rejection.reason, RejectionReason::UnsupportedMigration);
+    assert_eq!(
+        rejection.rejection_reason,
+        RejectionReason::UnsupportedMigration
+    );
 }
 
 #[tokio::test]
@@ -111,8 +114,8 @@ async fn multi_operation_request_is_ordered_through_generated_runner() {
     let SubReply::Ok(Output::Reported(report)) = &tail[0] else {
         panic!("expected report reply");
     };
-    assert_eq!(report.completions.len(), 1);
-    assert!(report.rejections.is_empty());
+    assert_eq!(report.completions.payload().len(), 1);
+    assert!(report.rejections.payload().is_empty());
 }
 
 #[test]

@@ -110,7 +110,7 @@ source to upgrade its own client schema.
 
 ## Code Map
 
-- `schema/lib.schema` declares the first real schema-next source for
+- `schema/lib.schema` declares the first real schema source for
   the runtime-side upgrade surface, including ordinary requests,
   meta-policy requests, and generated Signal/Nexus/SEMA roots.
 - `src/schema/lib.rs` is the checked-in generated Rust interface;
@@ -141,7 +141,7 @@ source to upgrade its own client schema.
 - The daemon accepts only a signal-encoded rkyv configuration-file
   argument. It does not decode inline NOTA or `.nota` files.
 - The default daemon/runtime dependency graph does not pull
-  `nota-next`, `nota-codec`, or `signal-core`; `nota-text` is an
+  `nota`, `nota-next`, `nota-codec`, or `signal-core`; `nota-text` is an
   explicit CLI/debug/audit projection feature.
 - The migration catalogue runs a durable sema-store migration path; the
   daemon does not yet open durable state for its own policy, migration
@@ -209,10 +209,10 @@ through authentication to distribution lives in the persona vocabulary.
 ## Status
 
 Current-stack dependency refresh landed. The runtime carries checked-in
-schema-next/schema-rust-next artifacts, uses current signal-frame
+schema/schema-rust artifacts, uses current signal-frame
 contracts for the ordinary and meta-policy sockets, routes durable
 database work through sema-engine, and has no signal-core, nota-codec,
-or default nota-next dependency path. The migration catalogue engine now
+or default nota dependency path. The migration catalogue engine now
 implements the generated `NexusEngine` and `SemaEngine` traits, and the
 runtime tests drive `Inspect`, `AttemptUpgrade`, and `Report` through the
 generated Nexus runner instead of the retired `signal-executor` path.

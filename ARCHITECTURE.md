@@ -141,7 +141,7 @@ source to upgrade its own client schema.
 - The daemon accepts only a signal-encoded rkyv configuration-file
   argument. It does not decode inline NOTA or `.nota` files.
 - The default daemon/runtime dependency graph does not pull
-  `nota`, `nota-codec`, or `signal-core`; `nota-text` is an
+  `nota`, `nota-next`, `nota-codec`, or `signal-core`; `nota-text` is an
   explicit CLI/debug/audit projection feature.
 - The migration catalogue runs a durable sema-store migration path; the
   daemon does not yet open durable state for its own policy, migration

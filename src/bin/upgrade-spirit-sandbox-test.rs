@@ -45,7 +45,7 @@ fn run() -> Result<(), String> {
     })?;
 
     let attempt = Attempt {
-        component: ComponentName::new("persona-spirit"),
+        component_name: ComponentName::new("persona-spirit"),
         source: Version {
             major: 0,
             minor: 1,
@@ -65,7 +65,7 @@ fn run() -> Result<(), String> {
 
     println!(
         "(SandboxUpgradeSucceeded {} {} [{}] [{}])",
-        completion.changed_records,
+        completion.changed_records.payload(),
         readable_records,
         source_copy.display(),
         target.display()

@@ -64,7 +64,7 @@ pub fn migrate_paths(source: &Path, target: &Path) -> DatabaseMigrationResult<Mo
 }
 
 fn run(attempt: &Attempt) -> Result<ModuleResult, RejectionReason> {
-    if attempt.component.payload() != COMPONENT {
+    if attempt.component_name.payload() != COMPONENT {
         return Err(RejectionReason::ComponentMismatch);
     }
     Ok(ModuleResult::unchanged())

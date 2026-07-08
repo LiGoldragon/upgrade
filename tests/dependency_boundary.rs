@@ -10,7 +10,7 @@ fn default_dependency_tree_does_not_pull_text_or_legacy_signal_crates() {
     assert!(output.status.success(), "status: {:?}", output.status);
     let tree = String::from_utf8(output.stdout).expect("dependency tree");
 
-    for forbidden_crate in ["nota", "nota-codec", "signal-core"] {
+    for forbidden_crate in ["nota", "nota-next", "nota-codec", "signal-core"] {
         assert!(
             !tree.contains(forbidden_crate),
             "default dependency tree must not contain {forbidden_crate}:\n{tree}"

@@ -59,6 +59,86 @@ pub struct RawBytes(Vec<RawByte>);
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ChangedRecords(Integer);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct StateSequence(Integer);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct MirroredWriteCount(Integer);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct RecordFrontier(Option<Integer>);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct FailureIdentifier(Integer);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct DivergenceIdentifier(Integer);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct Recovered(Boolean);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct SupportedMigrations(Vec<SupportedMigration>);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct Completions(Vec<Completion>);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct Rejections(Vec<Rejection>);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ContractVersion(RawBytes);
 
 #[rustfmt::skip]
@@ -80,10 +160,10 @@ pub struct Version {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SupportedMigration {
-    pub component: ComponentName,
+    pub component_name: ComponentName,
     pub source: Version,
     pub target: Version,
-    pub identifier: MigrationIdentifier,
+    pub migration_identifier: MigrationIdentifier,
 }
 
 #[rustfmt::skip]
@@ -104,7 +184,7 @@ pub enum Inspection {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Attempt {
-    pub component: ComponentName,
+    pub component_name: ComponentName,
     pub source: Version,
     pub target: Version,
 }
@@ -126,7 +206,7 @@ pub enum ReportQuery {
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct InspectionReported(Vec<SupportedMigration>);
+pub struct InspectionReported(SupportedMigrations);
 
 #[rustfmt::skip]
 #[cfg_attr(
@@ -135,11 +215,11 @@ pub struct InspectionReported(Vec<SupportedMigration>);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Completion {
-    pub component: ComponentName,
+    pub component_name: ComponentName,
     pub source: Version,
     pub target: Version,
-    pub migration: MigrationIdentifier,
-    pub changed_records: Integer,
+    pub migration_identifier: MigrationIdentifier,
+    pub changed_records: ChangedRecords,
 }
 
 #[rustfmt::skip]
@@ -170,10 +250,10 @@ pub enum RejectionReason {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Rejection {
-    pub component: ComponentName,
+    pub component_name: ComponentName,
     pub source: Version,
     pub target: Version,
-    pub reason: RejectionReason,
+    pub rejection_reason: RejectionReason,
 }
 
 #[rustfmt::skip]
@@ -183,8 +263,8 @@ pub struct Rejection {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Reported {
-    pub completions: Vec<Completion>,
-    pub rejections: Vec<Rejection>,
+    pub completions: Completions,
+    pub rejections: Rejections,
 }
 
 #[rustfmt::skip]
@@ -246,13 +326,13 @@ pub struct Time {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct HandoverMarker {
-    pub component: ComponentName,
-    pub schema_hash: ContractVersion,
-    pub state_sequence: Integer,
-    pub mirrored_write_count: Integer,
-    pub record_frontier: Option<Integer>,
-    pub recorded_at_date: Date,
-    pub recorded_at_time: Time,
+    pub component_name: ComponentName,
+    pub contract_version: ContractVersion,
+    pub state_sequence: StateSequence,
+    pub mirrored_write_count: MirroredWriteCount,
+    pub record_frontier: RecordFrontier,
+    pub date: Date,
+    pub time: Time,
 }
 
 #[rustfmt::skip]
@@ -270,8 +350,8 @@ pub struct MarkerRequest(ComponentName);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ReadinessReport {
-    pub component: ComponentName,
-    pub source_marker: HandoverMarker,
+    pub component_name: ComponentName,
+    pub handover_marker: HandoverMarker,
 }
 
 #[rustfmt::skip]
@@ -281,8 +361,8 @@ pub struct ReadinessReport {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct CompletionReport {
-    pub component: ComponentName,
-    pub accepted_marker: HandoverMarker,
+    pub component_name: ComponentName,
+    pub handover_marker: HandoverMarker,
 }
 
 #[rustfmt::skip]
@@ -292,11 +372,11 @@ pub struct CompletionReport {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct MirrorPayload {
-    pub component: ComponentName,
+    pub component_name: ComponentName,
     pub source_version: ContractVersion,
     pub target_version: ContractVersion,
-    pub kind: RecordKind,
-    pub payload: RawBytes,
+    pub record_kind: RecordKind,
+    pub raw_bytes: RawBytes,
 }
 
 #[rustfmt::skip]
@@ -306,12 +386,12 @@ pub struct MirrorPayload {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct DivergencePayload {
-    pub component: ComponentName,
+    pub component_name: ComponentName,
     pub source_version: ContractVersion,
     pub target_version: ContractVersion,
-    pub reason: DivergenceReason,
-    pub kind: RecordKind,
-    pub payload: RawBytes,
+    pub divergence_reason: DivergenceReason,
+    pub record_kind: RecordKind,
+    pub raw_bytes: RawBytes,
 }
 
 #[rustfmt::skip]
@@ -321,8 +401,8 @@ pub struct DivergencePayload {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RecoveryRequest {
-    pub component: ComponentName,
-    pub failure_identifier: Integer,
+    pub component_name: ComponentName,
+    pub failure_identifier: FailureIdentifier,
 }
 
 #[rustfmt::skip]
@@ -348,8 +428,8 @@ pub struct HandoverFinalization(HandoverMarker);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct MirrorAcknowledgement {
-    pub component: ComponentName,
-    pub mirrored_write_count: Integer,
+    pub component_name: ComponentName,
+    pub mirrored_write_count: MirroredWriteCount,
 }
 
 #[rustfmt::skip]
@@ -359,8 +439,8 @@ pub struct MirrorAcknowledgement {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct DivergenceAcknowledgement {
-    pub component: ComponentName,
-    pub divergence_identifier: Integer,
+    pub component_name: ComponentName,
+    pub divergence_identifier: DivergenceIdentifier,
 }
 
 #[rustfmt::skip]
@@ -370,8 +450,8 @@ pub struct DivergenceAcknowledgement {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RecoveryResult {
-    pub component: ComponentName,
-    pub recovered: Boolean,
+    pub component_name: ComponentName,
+    pub recovered: Recovered,
 }
 
 #[rustfmt::skip]
@@ -381,8 +461,8 @@ pub struct RecoveryResult {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct HandoverRejection {
-    pub component: ComponentName,
-    pub reason: HandoverRejectionReason,
+    pub component_name: ComponentName,
+    pub handover_rejection_reason: HandoverRejectionReason,
 }
 
 #[rustfmt::skip]
@@ -433,6 +513,18 @@ pub enum DivergenceReason {
     feature = "nota-text",
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct MigrationVersion {
+    pub major: Integer,
+    pub minor: Integer,
+    pub patch: Integer,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -455,11 +547,11 @@ pub enum MigrationState {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Registration {
-    pub component: ComponentName,
-    pub source: Version,
-    pub target: Version,
-    pub migration: MigrationIdentifier,
-    pub state: MigrationState,
+    pub component_name: ComponentName,
+    pub source: MigrationVersion,
+    pub target: MigrationVersion,
+    pub migration_identifier: MigrationIdentifier,
+    pub migration_state: MigrationState,
 }
 
 #[rustfmt::skip]
@@ -469,9 +561,9 @@ pub struct Registration {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct PolicyRange {
-    pub component: ComponentName,
-    pub source: Version,
-    pub target: Version,
+    pub component_name: ComponentName,
+    pub source: MigrationVersion,
+    pub target: MigrationVersion,
 }
 
 #[rustfmt::skip]
@@ -502,10 +594,10 @@ pub enum BlockReason {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Block {
-    pub component: ComponentName,
-    pub source: Version,
-    pub target: Version,
-    pub reason: BlockReason,
+    pub component_name: ComponentName,
+    pub source: MigrationVersion,
+    pub target: MigrationVersion,
+    pub block_reason: BlockReason,
 }
 
 #[rustfmt::skip]
@@ -526,10 +618,10 @@ pub enum Query {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct PolicyEntry {
-    pub component: ComponentName,
-    pub source: Version,
-    pub target: Version,
-    pub state: MigrationState,
+    pub component_name: ComponentName,
+    pub source: MigrationVersion,
+    pub target: MigrationVersion,
+    pub migration_state: MigrationState,
 }
 
 #[rustfmt::skip]
@@ -568,10 +660,10 @@ pub enum CatalogueRejectionReason {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct PolicyRejected {
-    pub component: ComponentName,
-    pub source: Version,
-    pub target: Version,
-    pub reason: CatalogueRejectionReason,
+    pub component_name: ComponentName,
+    pub source: MigrationVersion,
+    pub target: MigrationVersion,
+    pub catalogue_rejection_reason: CatalogueRejectionReason,
 }
 
 #[rustfmt::skip]
@@ -589,7 +681,7 @@ pub struct VersionLabel(String);
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct SelectorVersion {
-    pub label: VersionLabel,
+    pub version_label: VersionLabel,
     pub contract_version: ContractVersion,
 }
 
@@ -663,10 +755,10 @@ pub enum QuarantineReason {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ForceFlip {
-    pub component: ComponentName,
-    pub current_version: SelectorVersion,
-    pub target_version: SelectorVersion,
-    pub reason: ForceReason,
+    pub component_name: ComponentName,
+    pub current: SelectorVersion,
+    pub target: SelectorVersion,
+    pub force_reason: ForceReason,
 }
 
 #[rustfmt::skip]
@@ -676,10 +768,10 @@ pub struct ForceFlip {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Rollback {
-    pub component: ComponentName,
-    pub active_version: SelectorVersion,
-    pub restore_version: SelectorVersion,
-    pub reason: RollbackReason,
+    pub component_name: ComponentName,
+    pub active: SelectorVersion,
+    pub restore: SelectorVersion,
+    pub rollback_reason: RollbackReason,
 }
 
 #[rustfmt::skip]
@@ -689,9 +781,9 @@ pub struct Rollback {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Quarantine {
-    pub component: ComponentName,
-    pub version: SelectorVersion,
-    pub reason: QuarantineReason,
+    pub component_name: ComponentName,
+    pub selector_version: SelectorVersion,
+    pub quarantine_reason: QuarantineReason,
 }
 
 #[rustfmt::skip]
@@ -701,8 +793,8 @@ pub struct Quarantine {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ForcedFlip {
-    pub component: ComponentName,
-    pub active_version: SelectorVersion,
+    pub component_name: ComponentName,
+    pub selector_version: SelectorVersion,
 }
 
 #[rustfmt::skip]
@@ -712,8 +804,8 @@ pub struct ForcedFlip {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RolledBack {
-    pub component: ComponentName,
-    pub active_version: SelectorVersion,
+    pub component_name: ComponentName,
+    pub selector_version: SelectorVersion,
 }
 
 #[rustfmt::skip]
@@ -723,8 +815,8 @@ pub struct RolledBack {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Quarantined {
-    pub component: ComponentName,
-    pub version: SelectorVersion,
+    pub component_name: ComponentName,
+    pub selector_version: SelectorVersion,
 }
 
 #[rustfmt::skip]
@@ -760,8 +852,8 @@ pub enum SelectorRejectionReason {
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Rejected {
-    pub component: ComponentName,
-    pub reason: SelectorRejectionReason,
+    pub component_name: ComponentName,
+    pub selector_rejection_reason: SelectorRejectionReason,
 }
 
 #[rustfmt::skip]
@@ -1039,6 +1131,196 @@ impl From<Vec<RawByte>> for RawBytes {
 }
 
 #[rustfmt::skip]
+impl ChangedRecords {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Integer {
+        &self.0
+    }
+    pub fn into_payload(self) -> Integer {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Integer> for ChangedRecords {
+    fn from(payload: Integer) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl StateSequence {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Integer {
+        &self.0
+    }
+    pub fn into_payload(self) -> Integer {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Integer> for StateSequence {
+    fn from(payload: Integer) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl MirroredWriteCount {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Integer {
+        &self.0
+    }
+    pub fn into_payload(self) -> Integer {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Integer> for MirroredWriteCount {
+    fn from(payload: Integer) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl RecordFrontier {
+    pub fn new(payload: Option<Integer>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Option<Integer> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Option<Integer> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Option<Integer>> for RecordFrontier {
+    fn from(payload: Option<Integer>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl FailureIdentifier {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Integer {
+        &self.0
+    }
+    pub fn into_payload(self) -> Integer {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Integer> for FailureIdentifier {
+    fn from(payload: Integer) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl DivergenceIdentifier {
+    pub fn new(payload: Integer) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Integer {
+        &self.0
+    }
+    pub fn into_payload(self) -> Integer {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Integer> for DivergenceIdentifier {
+    fn from(payload: Integer) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Recovered {
+    pub fn new(payload: Boolean) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Boolean {
+        &self.0
+    }
+    pub fn into_payload(self) -> Boolean {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Boolean> for Recovered {
+    fn from(payload: Boolean) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl SupportedMigrations {
+    pub fn new(payload: Vec<SupportedMigration>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<SupportedMigration> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<SupportedMigration> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<SupportedMigration>> for SupportedMigrations {
+    fn from(payload: Vec<SupportedMigration>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Completions {
+    pub fn new(payload: Vec<Completion>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<Completion> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<Completion> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<Completion>> for Completions {
+    fn from(payload: Vec<Completion>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl Rejections {
+    pub fn new(payload: Vec<Rejection>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<Rejection> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<Rejection> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<Rejection>> for Rejections {
+    fn from(payload: Vec<Rejection>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
 impl ContractVersion {
     pub fn new(payload: RawBytes) -> Self {
         Self(payload)
@@ -1059,19 +1341,19 @@ impl From<RawBytes> for ContractVersion {
 
 #[rustfmt::skip]
 impl InspectionReported {
-    pub fn new(payload: Vec<SupportedMigration>) -> Self {
+    pub fn new(payload: SupportedMigrations) -> Self {
         Self(payload)
     }
-    pub fn payload(&self) -> &Vec<SupportedMigration> {
+    pub fn payload(&self) -> &SupportedMigrations {
         &self.0
     }
-    pub fn into_payload(self) -> Vec<SupportedMigration> {
+    pub fn into_payload(self) -> SupportedMigrations {
         self.0
     }
 }
 #[rustfmt::skip]
-impl From<Vec<SupportedMigration>> for InspectionReported {
-    fn from(payload: Vec<SupportedMigration>) -> Self {
+impl From<SupportedMigrations> for InspectionReported {
+    fn from(payload: SupportedMigrations) -> Self {
         Self::new(payload)
     }
 }
@@ -1379,7 +1661,7 @@ impl SemaWriteOutput {
 
 #[rustfmt::skip]
 impl SemaReadOutput {
-    pub fn inspection_reported(payload: Vec<SupportedMigration>) -> Self {
+    pub fn inspection_reported(payload: SupportedMigrations) -> Self {
         Self::InspectionReported(InspectionReported::new(payload))
     }
     pub fn reported(payload: Reported) -> Self {
@@ -1453,7 +1735,7 @@ impl Input {
 
 #[rustfmt::skip]
 impl Output {
-    pub fn inspection_reported(payload: Vec<SupportedMigration>) -> Self {
+    pub fn inspection_reported(payload: SupportedMigrations) -> Self {
         Self::InspectionReported(InspectionReported::new(payload))
     }
     pub fn upgrade_completed(payload: Completion) -> Self {

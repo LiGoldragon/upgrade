@@ -51,7 +51,7 @@ impl MigrationModule {
     }
 
     pub fn matches(&self, attempt: &Attempt) -> bool {
-        self.supported.component == attempt.component
+        self.supported.component_name == attempt.component_name
             && self.supported.source == attempt.source
             && self.supported.target == attempt.target
     }
@@ -62,11 +62,11 @@ impl MigrationModule {
         }
         let result = (self.run)(attempt).map_err(|reason| rejection(attempt, reason))?;
         Ok(Completion {
-            component: attempt.component.clone(),
+            component_name: attempt.component_name.clone(),
             source: attempt.source.clone(),
             target: attempt.target.clone(),
-            migration: self.supported.identifier.clone(),
-            changed_records: result.changed_records,
+            migration_identifier: self.supported.migration_identifier.clone(),
+            changed_records: result.changed_records.into(),
         })
     }
 
@@ -83,15 +83,15 @@ impl MigrationModule {
         let migrate_database =
             self.migrate_database
                 .ok_or(DatabaseMigrationError::NoDatabaseMigration {
-                    migration: self.supported.identifier.clone(),
+                    migration_identifier: self.supported.migration_identifier.clone(),
                 })?;
         let result = migrate_database(request)?;
         Ok(Completion {
-            component: request.attempt.component.clone(),
+            component_name: request.attempt.component_name.clone(),
             source: request.attempt.source.clone(),
             target: request.attempt.target.clone(),
-            migration: self.supported.identifier.clone(),
-            changed_records: result.changed_records,
+            migration_identifier: self.supported.migration_identifier.clone(),
+            changed_records: result.changed_records.into(),
         })
     }
 }
@@ -133,8 +133,10 @@ pub enum DatabaseMigrationError {
     UnsupportedMigration,
     #[error("migration rejected: {0:?}")]
     Rejected(Rejection),
-    #[error("migration {migration:?} has no database migration implementation")]
-    NoDatabaseMigration { migration: MigrationIdentifier },
+    #[error("migration {migration_identifier:?} has no database migration implementation")]
+    NoDatabaseMigration {
+        migration_identifier: MigrationIdentifier,
+    },
     #[error("source database does not exist: {0}")]
     SourceMissing(PathBuf),
     #[error("target database already exists: {0}")]
@@ -193,24 +195,24 @@ impl MigrationCatalogue {
 }
 
 pub fn supported_migration(
-    component: ComponentName,
+    component_name: ComponentName,
     source: Version,
     target: Version,
-    identifier: MigrationIdentifier,
+    migration_identifier: MigrationIdentifier,
 ) -> SupportedMigration {
     SupportedMigration {
-        component,
+        component_name,
         source,
         target,
-        identifier,
+        migration_identifier,
     }
 }
 
 fn rejection(attempt: &Attempt, reason: RejectionReason) -> Rejection {
     Rejection {
-        component: attempt.component.clone(),
+        component_name: attempt.component_name.clone(),
         source: attempt.source.clone(),
         target: attempt.target.clone(),
-        reason,
+        rejection_reason: reason,
     }
 }

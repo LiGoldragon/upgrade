@@ -87,31 +87,31 @@ impl ActiveVersionChanged {
         Self {
             component: target.component().clone(),
             active_version: target.next_version().clone(),
-            schema_hash: marker.schema_hash.clone(),
+            schema_hash: marker.contract_version.clone(),
             source: ActiveVersionChangeSource::HandoverMarker {
-                state_sequence: marker.state_sequence,
+                state_sequence: *marker.state_sequence.payload(),
             },
         }
     }
 
     pub fn from_force_flip(order: &ForceFlip) -> Self {
         Self {
-            component: component_name_from_meta(&order.component),
-            active_version: VersionLabel::from(&order.target_version.label),
-            schema_hash: contract_version_from_meta(&order.target_version.contract_version),
+            component: component_name_from_meta(&order.component_name),
+            active_version: VersionLabel::from(&order.target.version_label),
+            schema_hash: contract_version_from_meta(&order.target.contract_version),
             source: ActiveVersionChangeSource::ForceFlip {
-                reason: order.reason,
+                reason: order.force_reason,
             },
         }
     }
 
     pub fn from_rollback(order: &Rollback) -> Self {
         Self {
-            component: component_name_from_meta(&order.component),
-            active_version: VersionLabel::from(&order.restore_version.label),
-            schema_hash: contract_version_from_meta(&order.restore_version.contract_version),
+            component: component_name_from_meta(&order.component_name),
+            active_version: VersionLabel::from(&order.restore.version_label),
+            schema_hash: contract_version_from_meta(&order.restore.contract_version),
             source: ActiveVersionChangeSource::Rollback {
-                reason: order.reason,
+                reason: order.rollback_reason,
             },
         }
     }
@@ -152,10 +152,10 @@ pub struct VersionQuarantined {
 impl VersionQuarantined {
     pub fn from_quarantine(order: &Quarantine) -> Self {
         Self {
-            component: component_name_from_meta(&order.component),
-            version: VersionLabel::from(&order.version.label),
-            schema_hash: contract_version_from_meta(&order.version.contract_version),
-            reason: order.reason,
+            component: component_name_from_meta(&order.component_name),
+            version: VersionLabel::from(&order.selector_version.version_label),
+            schema_hash: contract_version_from_meta(&order.selector_version.contract_version),
+            reason: order.quarantine_reason,
         }
     }
 

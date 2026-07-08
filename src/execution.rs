@@ -58,21 +58,27 @@ impl Engine {
 
     fn inspect(&self, inspection: schema::Inspection) -> schema::InspectionReported {
         match inspection {
-            schema::Inspection::All => schema::InspectionReported::new(
-                self.index
-                    .supported_migrations()
-                    .into_iter()
-                    .map(ProjectInto::project_into)
-                    .collect(),
-            ),
-            schema::Inspection::Component(component) => schema::InspectionReported::new(
-                self.index
-                    .supported_migrations()
-                    .into_iter()
-                    .filter(|migration| migration.component.payload() == component.payload())
-                    .map(ProjectInto::project_into)
-                    .collect(),
-            ),
+            schema::Inspection::All => {
+                schema::InspectionReported::new(schema::SupportedMigrations::new(
+                    self.index
+                        .supported_migrations()
+                        .into_iter()
+                        .map(ProjectInto::project_into)
+                        .collect(),
+                ))
+            }
+            schema::Inspection::Component(component) => {
+                schema::InspectionReported::new(schema::SupportedMigrations::new(
+                    self.index
+                        .supported_migrations()
+                        .into_iter()
+                        .filter(|migration| {
+                            migration.component_name.payload() == component.payload()
+                        })
+                        .map(ProjectInto::project_into)
+                        .collect(),
+                ))
+            }
         }
     }
 
@@ -93,34 +99,42 @@ impl Engine {
     fn report(&self, query: schema::ReportQuery) -> schema::Reported {
         match query {
             schema::ReportQuery::All => schema::Reported {
-                completions: self
-                    .completions
-                    .iter()
-                    .cloned()
-                    .map(ProjectInto::project_into)
-                    .collect(),
-                rejections: self
-                    .rejections
-                    .iter()
-                    .cloned()
-                    .map(ProjectInto::project_into)
-                    .collect(),
+                completions: schema::Completions::new(
+                    self.completions
+                        .iter()
+                        .cloned()
+                        .map(ProjectInto::project_into)
+                        .collect(),
+                ),
+                rejections: schema::Rejections::new(
+                    self.rejections
+                        .iter()
+                        .cloned()
+                        .map(ProjectInto::project_into)
+                        .collect(),
+                ),
             },
             schema::ReportQuery::Component(component) => schema::Reported {
-                completions: self
-                    .completions
-                    .iter()
-                    .filter(|completion| completion.component.payload() == component.payload())
-                    .cloned()
-                    .map(ProjectInto::project_into)
-                    .collect(),
-                rejections: self
-                    .rejections
-                    .iter()
-                    .filter(|rejection| rejection.component.payload() == component.payload())
-                    .cloned()
-                    .map(ProjectInto::project_into)
-                    .collect(),
+                completions: schema::Completions::new(
+                    self.completions
+                        .iter()
+                        .filter(|completion| {
+                            completion.component_name.payload() == component.payload()
+                        })
+                        .cloned()
+                        .map(ProjectInto::project_into)
+                        .collect(),
+                ),
+                rejections: schema::Rejections::new(
+                    self.rejections
+                        .iter()
+                        .filter(|rejection| {
+                            rejection.component_name.payload() == component.payload()
+                        })
+                        .cloned()
+                        .map(ProjectInto::project_into)
+                        .collect(),
+                ),
             },
         }
     }
@@ -163,14 +177,14 @@ impl schema::NexusEngine for Engine {
         match input {
             schema::NexusEffectCommand::CallHandoverPeer(payload) => {
                 schema::NexusEffectResult::HandoverPeerCalled(schema::MirrorAcknowledgement {
-                    component: payload.component,
-                    mirrored_write_count: 0,
+                    component_name: payload.component_name,
+                    mirrored_write_count: schema::MirroredWriteCount::new(0),
                 })
             }
             schema::NexusEffectCommand::NotifySelector(payload) => {
                 schema::NexusEffectResult::SelectorNotified(schema::ForcedFlip {
-                    component: payload.component,
-                    active_version: payload.target_version,
+                    component_name: payload.component_name,
+                    selector_version: payload.target,
                 })
             }
         }
@@ -328,6 +342,90 @@ impl ProjectInto<signal_upgrade::RawBytes> for schema::RawBytes {
     }
 }
 
+impl ProjectInto<schema::ChangedRecords> for signal_upgrade::ChangedRecords {
+    fn project_into(self) -> schema::ChangedRecords {
+        schema::ChangedRecords::new(self.into_payload())
+    }
+}
+
+impl ProjectInto<signal_upgrade::ChangedRecords> for schema::ChangedRecords {
+    fn project_into(self) -> signal_upgrade::ChangedRecords {
+        signal_upgrade::ChangedRecords::new(self.into_payload())
+    }
+}
+
+impl ProjectInto<schema::StateSequence> for signal_upgrade::StateSequence {
+    fn project_into(self) -> schema::StateSequence {
+        schema::StateSequence::new(self.into_payload())
+    }
+}
+
+impl ProjectInto<signal_upgrade::StateSequence> for schema::StateSequence {
+    fn project_into(self) -> signal_upgrade::StateSequence {
+        signal_upgrade::StateSequence::new(self.into_payload())
+    }
+}
+
+impl ProjectInto<schema::MirroredWriteCount> for signal_upgrade::MirroredWriteCount {
+    fn project_into(self) -> schema::MirroredWriteCount {
+        schema::MirroredWriteCount::new(self.into_payload())
+    }
+}
+
+impl ProjectInto<signal_upgrade::MirroredWriteCount> for schema::MirroredWriteCount {
+    fn project_into(self) -> signal_upgrade::MirroredWriteCount {
+        signal_upgrade::MirroredWriteCount::new(self.into_payload())
+    }
+}
+
+impl ProjectInto<schema::RecordFrontier> for signal_upgrade::RecordFrontier {
+    fn project_into(self) -> schema::RecordFrontier {
+        schema::RecordFrontier::new(self.into_payload())
+    }
+}
+
+impl ProjectInto<signal_upgrade::RecordFrontier> for schema::RecordFrontier {
+    fn project_into(self) -> signal_upgrade::RecordFrontier {
+        signal_upgrade::RecordFrontier::new(self.into_payload())
+    }
+}
+
+impl ProjectInto<schema::FailureIdentifier> for signal_upgrade::FailureIdentifier {
+    fn project_into(self) -> schema::FailureIdentifier {
+        schema::FailureIdentifier::new(self.into_payload())
+    }
+}
+
+impl ProjectInto<signal_upgrade::FailureIdentifier> for schema::FailureIdentifier {
+    fn project_into(self) -> signal_upgrade::FailureIdentifier {
+        signal_upgrade::FailureIdentifier::new(self.into_payload())
+    }
+}
+
+impl ProjectInto<schema::DivergenceIdentifier> for signal_upgrade::DivergenceIdentifier {
+    fn project_into(self) -> schema::DivergenceIdentifier {
+        schema::DivergenceIdentifier::new(self.into_payload())
+    }
+}
+
+impl ProjectInto<signal_upgrade::DivergenceIdentifier> for schema::DivergenceIdentifier {
+    fn project_into(self) -> signal_upgrade::DivergenceIdentifier {
+        signal_upgrade::DivergenceIdentifier::new(self.into_payload())
+    }
+}
+
+impl ProjectInto<schema::Recovered> for signal_upgrade::Recovered {
+    fn project_into(self) -> schema::Recovered {
+        schema::Recovered::new(self.into_payload())
+    }
+}
+
+impl ProjectInto<signal_upgrade::Recovered> for schema::Recovered {
+    fn project_into(self) -> signal_upgrade::Recovered {
+        signal_upgrade::Recovered::new(self.into_payload())
+    }
+}
+
 impl ProjectInto<schema::Inspection> for signal_upgrade::Inspection {
     fn project_into(self) -> schema::Inspection {
         match self {
@@ -340,7 +438,7 @@ impl ProjectInto<schema::Inspection> for signal_upgrade::Inspection {
 impl ProjectInto<schema::Attempt> for signal_upgrade::Attempt {
     fn project_into(self) -> schema::Attempt {
         schema::Attempt {
-            component: self.component.project_into(),
+            component_name: self.component_name.project_into(),
             source: self.source.project_into(),
             target: self.target.project_into(),
         }
@@ -379,7 +477,7 @@ impl ProjectInto<signal_upgrade::Version> for schema::Version {
 impl ProjectInto<signal_upgrade::Attempt> for schema::Attempt {
     fn project_into(self) -> signal_upgrade::Attempt {
         signal_upgrade::Attempt {
-            component: self.component.project_into(),
+            component_name: self.component_name.project_into(),
             source: self.source.project_into(),
             target: self.target.project_into(),
         }
@@ -389,10 +487,10 @@ impl ProjectInto<signal_upgrade::Attempt> for schema::Attempt {
 impl ProjectInto<schema::SupportedMigration> for signal_upgrade::SupportedMigration {
     fn project_into(self) -> schema::SupportedMigration {
         schema::SupportedMigration {
-            component: self.component.project_into(),
+            component_name: self.component_name.project_into(),
             source: self.source.project_into(),
             target: self.target.project_into(),
-            identifier: self.identifier.project_into(),
+            migration_identifier: self.migration_identifier.project_into(),
         }
     }
 }
@@ -400,11 +498,11 @@ impl ProjectInto<schema::SupportedMigration> for signal_upgrade::SupportedMigrat
 impl ProjectInto<schema::Completion> for signal_upgrade::Completion {
     fn project_into(self) -> schema::Completion {
         schema::Completion {
-            component: self.component.project_into(),
+            component_name: self.component_name.project_into(),
             source: self.source.project_into(),
             target: self.target.project_into(),
-            migration: self.migration.project_into(),
-            changed_records: self.changed_records,
+            migration_identifier: self.migration_identifier.project_into(),
+            changed_records: self.changed_records.project_into(),
         }
     }
 }
@@ -412,11 +510,11 @@ impl ProjectInto<schema::Completion> for signal_upgrade::Completion {
 impl ProjectInto<signal_upgrade::Completion> for schema::Completion {
     fn project_into(self) -> signal_upgrade::Completion {
         signal_upgrade::Completion {
-            component: self.component.project_into(),
+            component_name: self.component_name.project_into(),
             source: self.source.project_into(),
             target: self.target.project_into(),
-            migration: self.migration.project_into(),
-            changed_records: self.changed_records,
+            migration_identifier: self.migration_identifier.project_into(),
+            changed_records: self.changed_records.project_into(),
         }
     }
 }
@@ -444,10 +542,10 @@ impl ProjectInto<signal_upgrade::RejectionReason> for schema::RejectionReason {
 impl ProjectInto<schema::Rejection> for signal_upgrade::Rejection {
     fn project_into(self) -> schema::Rejection {
         schema::Rejection {
-            component: self.component.project_into(),
+            component_name: self.component_name.project_into(),
             source: self.source.project_into(),
             target: self.target.project_into(),
-            reason: self.reason.project_into(),
+            rejection_reason: self.rejection_reason.project_into(),
         }
     }
 }
@@ -455,10 +553,10 @@ impl ProjectInto<schema::Rejection> for signal_upgrade::Rejection {
 impl ProjectInto<signal_upgrade::Rejection> for schema::Rejection {
     fn project_into(self) -> signal_upgrade::Rejection {
         signal_upgrade::Rejection {
-            component: self.component.project_into(),
+            component_name: self.component_name.project_into(),
             source: self.source.project_into(),
             target: self.target.project_into(),
-            reason: self.reason.project_into(),
+            rejection_reason: self.rejection_reason.project_into(),
         }
     }
 }
@@ -518,13 +616,13 @@ impl ProjectInto<signal_upgrade::Time> for schema::Time {
 impl ProjectInto<schema::HandoverMarker> for signal_upgrade::HandoverMarker {
     fn project_into(self) -> schema::HandoverMarker {
         schema::HandoverMarker {
-            component: self.component.project_into(),
-            schema_hash: self.schema_hash.project_into(),
-            state_sequence: self.state_sequence,
-            mirrored_write_count: self.mirrored_write_count,
-            record_frontier: self.record_frontier,
-            recorded_at_date: self.recorded_at_date.project_into(),
-            recorded_at_time: self.recorded_at_time.project_into(),
+            component_name: self.component_name.project_into(),
+            contract_version: self.contract_version.project_into(),
+            state_sequence: self.state_sequence.project_into(),
+            mirrored_write_count: self.mirrored_write_count.project_into(),
+            record_frontier: self.record_frontier.project_into(),
+            date: self.date.project_into(),
+            time: self.time.project_into(),
         }
     }
 }
@@ -532,13 +630,13 @@ impl ProjectInto<schema::HandoverMarker> for signal_upgrade::HandoverMarker {
 impl ProjectInto<signal_upgrade::HandoverMarker> for schema::HandoverMarker {
     fn project_into(self) -> signal_upgrade::HandoverMarker {
         signal_upgrade::HandoverMarker {
-            component: self.component.project_into(),
-            schema_hash: self.schema_hash.project_into(),
-            state_sequence: self.state_sequence,
-            mirrored_write_count: self.mirrored_write_count,
-            record_frontier: self.record_frontier,
-            recorded_at_date: self.recorded_at_date.project_into(),
-            recorded_at_time: self.recorded_at_time.project_into(),
+            component_name: self.component_name.project_into(),
+            contract_version: self.contract_version.project_into(),
+            state_sequence: self.state_sequence.project_into(),
+            mirrored_write_count: self.mirrored_write_count.project_into(),
+            record_frontier: self.record_frontier.project_into(),
+            date: self.date.project_into(),
+            time: self.time.project_into(),
         }
     }
 }
@@ -552,8 +650,8 @@ impl ProjectInto<schema::MarkerRequest> for signal_upgrade::MarkerRequest {
 impl ProjectInto<schema::ReadinessReport> for signal_upgrade::ReadinessReport {
     fn project_into(self) -> schema::ReadinessReport {
         schema::ReadinessReport {
-            component: self.component.project_into(),
-            source_marker: self.source_marker.project_into(),
+            component_name: self.component_name.project_into(),
+            handover_marker: self.handover_marker.project_into(),
         }
     }
 }
@@ -561,8 +659,8 @@ impl ProjectInto<schema::ReadinessReport> for signal_upgrade::ReadinessReport {
 impl ProjectInto<schema::CompletionReport> for signal_upgrade::CompletionReport {
     fn project_into(self) -> schema::CompletionReport {
         schema::CompletionReport {
-            component: self.component.project_into(),
-            accepted_marker: self.accepted_marker.project_into(),
+            component_name: self.component_name.project_into(),
+            handover_marker: self.handover_marker.project_into(),
         }
     }
 }
@@ -570,11 +668,11 @@ impl ProjectInto<schema::CompletionReport> for signal_upgrade::CompletionReport 
 impl ProjectInto<schema::MirrorPayload> for signal_upgrade::MirrorPayload {
     fn project_into(self) -> schema::MirrorPayload {
         schema::MirrorPayload {
-            component: self.component.project_into(),
+            component_name: self.component_name.project_into(),
             source_version: self.source_version.project_into(),
             target_version: self.target_version.project_into(),
-            kind: self.kind.project_into(),
-            payload: self.payload.project_into(),
+            record_kind: self.record_kind.project_into(),
+            raw_bytes: self.raw_bytes.project_into(),
         }
     }
 }
@@ -602,12 +700,12 @@ impl ProjectInto<signal_upgrade::DivergenceReason> for schema::DivergenceReason 
 impl ProjectInto<schema::DivergencePayload> for signal_upgrade::DivergencePayload {
     fn project_into(self) -> schema::DivergencePayload {
         schema::DivergencePayload {
-            component: self.component.project_into(),
+            component_name: self.component_name.project_into(),
             source_version: self.source_version.project_into(),
             target_version: self.target_version.project_into(),
-            reason: self.reason.project_into(),
-            kind: self.kind.project_into(),
-            payload: self.payload.project_into(),
+            divergence_reason: self.divergence_reason.project_into(),
+            record_kind: self.record_kind.project_into(),
+            raw_bytes: self.raw_bytes.project_into(),
         }
     }
 }
@@ -615,41 +713,46 @@ impl ProjectInto<schema::DivergencePayload> for signal_upgrade::DivergencePayloa
 impl ProjectInto<schema::RecoveryRequest> for signal_upgrade::RecoveryRequest {
     fn project_into(self) -> schema::RecoveryRequest {
         schema::RecoveryRequest {
-            component: self.component.project_into(),
-            failure_identifier: self.failure_identifier,
+            component_name: self.component_name.project_into(),
+            failure_identifier: self.failure_identifier.project_into(),
         }
     }
 }
 
 impl ProjectInto<signal_upgrade::InspectionReported> for schema::InspectionReported {
     fn project_into(self) -> signal_upgrade::InspectionReported {
-        signal_upgrade::InspectionReported::new(
+        signal_upgrade::InspectionReported::new(signal_upgrade::SupportedMigrations::new(
             self.into_payload()
+                .into_payload()
                 .into_iter()
                 .map(|migration| signal_upgrade::SupportedMigration {
-                    component: migration.component.project_into(),
+                    component_name: migration.component_name.project_into(),
                     source: migration.source.project_into(),
                     target: migration.target.project_into(),
-                    identifier: migration.identifier.project_into(),
+                    migration_identifier: migration.migration_identifier.project_into(),
                 })
                 .collect(),
-        )
+        ))
     }
 }
 
 impl ProjectInto<signal_upgrade::Reported> for schema::Reported {
     fn project_into(self) -> signal_upgrade::Reported {
         signal_upgrade::Reported {
-            completions: self
-                .completions
-                .into_iter()
-                .map(ProjectInto::project_into)
-                .collect(),
-            rejections: self
-                .rejections
-                .into_iter()
-                .map(ProjectInto::project_into)
-                .collect(),
+            completions: signal_upgrade::Completions::new(
+                self.completions
+                    .into_payload()
+                    .into_iter()
+                    .map(ProjectInto::project_into)
+                    .collect(),
+            ),
+            rejections: signal_upgrade::Rejections::new(
+                self.rejections
+                    .into_payload()
+                    .into_iter()
+                    .map(ProjectInto::project_into)
+                    .collect(),
+            ),
         }
     }
 }
@@ -669,8 +772,8 @@ impl ProjectInto<signal_upgrade::HandoverFinalization> for schema::HandoverFinal
 impl ProjectInto<signal_upgrade::MirrorAcknowledgement> for schema::MirrorAcknowledgement {
     fn project_into(self) -> signal_upgrade::MirrorAcknowledgement {
         signal_upgrade::MirrorAcknowledgement {
-            component: self.component.project_into(),
-            mirrored_write_count: self.mirrored_write_count,
+            component_name: self.component_name.project_into(),
+            mirrored_write_count: self.mirrored_write_count.project_into(),
         }
     }
 }
@@ -678,8 +781,8 @@ impl ProjectInto<signal_upgrade::MirrorAcknowledgement> for schema::MirrorAcknow
 impl ProjectInto<signal_upgrade::DivergenceAcknowledgement> for schema::DivergenceAcknowledgement {
     fn project_into(self) -> signal_upgrade::DivergenceAcknowledgement {
         signal_upgrade::DivergenceAcknowledgement {
-            component: self.component.project_into(),
-            divergence_identifier: self.divergence_identifier,
+            component_name: self.component_name.project_into(),
+            divergence_identifier: self.divergence_identifier.project_into(),
         }
     }
 }
@@ -687,8 +790,8 @@ impl ProjectInto<signal_upgrade::DivergenceAcknowledgement> for schema::Divergen
 impl ProjectInto<signal_upgrade::RecoveryResult> for schema::RecoveryResult {
     fn project_into(self) -> signal_upgrade::RecoveryResult {
         signal_upgrade::RecoveryResult {
-            component: self.component.project_into(),
-            recovered: self.recovered,
+            component_name: self.component_name.project_into(),
+            recovered: self.recovered.project_into(),
         }
     }
 }
@@ -709,8 +812,8 @@ impl ProjectInto<signal_upgrade::HandoverRejectionReason> for schema::HandoverRe
 impl ProjectInto<signal_upgrade::HandoverRejection> for schema::HandoverRejection {
     fn project_into(self) -> signal_upgrade::HandoverRejection {
         signal_upgrade::HandoverRejection {
-            component: self.component.project_into(),
-            reason: self.reason.project_into(),
+            component_name: self.component_name.project_into(),
+            handover_rejection_reason: self.handover_rejection_reason.project_into(),
         }
     }
 }
